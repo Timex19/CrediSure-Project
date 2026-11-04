@@ -1,5 +1,6 @@
 import secrets
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from fastapi.testclient import TestClient
@@ -170,3 +171,17 @@ def test_login_throttle(setup):
         ).status_code
         == 429
     )
+
+
+def test_parallel_protected_requests_use_independent_connections(setup):
+    client, _, _ = setup
+    headers, _ = sign_in(setup)
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        responses = list(
+            pool.map(
+                lambda _: client.get("/api/users?page_size=25", headers=headers),
+                range(18),
+            )
+        )
+    assert all(response.status_code == 200 for response in responses)
+    assert all(len(response.json()["items"]) == 25 for response in responses)

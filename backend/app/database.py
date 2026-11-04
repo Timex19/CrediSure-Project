@@ -36,8 +36,13 @@ CREATE INDEX IF NOT EXISTS users_status ON users(status);
 @contextmanager
 def connect(path: Path) -> Iterator[sqlite3.Connection]:
     # mode=rw prevents a request from silently creating an uninitialized database.
+    # FastAPI may resume one request's sync dependencies on different worker threads.
+    # Connections remain request-scoped and are never shared across requests.
     connection = sqlite3.connect(
-        f"{path.resolve().as_uri()}?mode=rw", uri=True, timeout=5
+        f"{path.resolve().as_uri()}?mode=rw",
+        uri=True,
+        timeout=5,
+        check_same_thread=False,
     )
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
