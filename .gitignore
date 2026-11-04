@@ -7,6 +7,10 @@ __pycache__/
 .ruff_cache/
 .coverage
 htmlcov/
+test-results/
+playwright-report/
+.playwright-browsers/
+.verification/
 *.sqlite3
 *.sqlite3-*
 node_modules/
