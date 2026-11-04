@@ -11,6 +11,7 @@ import {
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { useAuth } from '../features/auth/context'
 import styles from './Shell.module.css'
+import { Brand } from '../components/Brand'
 
 const currentYear = new Date().getFullYear()
 
@@ -19,10 +20,7 @@ function Navigation({ close }: { close?: () => void }) {
   return (
     <>
       <NavLink to="/overview" className="brand" onClick={close}>
-        <span className="brand-mark">
-          <ShieldCheck aria-hidden="true" />
-        </span>
-        CrediSure<span className="brand-period">.</span>
+        <Brand />
       </NavLink>
       <p className={styles.navLabel}>WORKSPACE</p>
       <nav aria-label="Main navigation" className={styles.nav}>

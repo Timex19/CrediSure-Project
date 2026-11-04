@@ -10,16 +10,18 @@
   -webkit-font-smoothing: antialiased;
   color: var(--text);
   background: var(--background);
-  --background: #f7f8fc;
+  --background: #f6f8f7;
   --surface: #ffffff;
-  --text: #1a233b;
-  --muted: #65708a;
-  --border: #e7eaf1;
-  --input-border: #b4bdce;
-  --primary: #354fca;
-  --primary-hover: #293fae;
-  --primary-soft: #eef1ff;
-  --nav-bg: #14213e;
+  --text: #1b3027;
+  --muted: #617369;
+  --border: #e3eae6;
+  --input-border: #afc0b6;
+  --primary: #087747;
+  --primary-hover: #065e38;
+  --primary-soft: #edf7f0;
+  --primary-border: #cce6d6;
+  --focus-ring: #247f54;
+  --nav-bg: #102c24;
   --danger: #b42332;
   --card-shadow: 0 2px 4px #1b2c4b03;
 }
@@ -62,7 +64,7 @@ select {
   outline-offset: 3px;
 }
 :focus-visible {
-  outline: 3px solid #8397f5;
+  outline: 2px solid var(--focus-ring);
 }
 h1:focus {
   outline: none;
@@ -95,7 +97,7 @@ svg {
 .primary {
   color: white;
   background: var(--primary);
-  box-shadow: 0 2px 3px #233c9815;
+  box-shadow: 0 2px 3px #145c3815;
 }
 .primary:hover:not(:disabled) {
   background: var(--primary-hover);
@@ -106,7 +108,7 @@ svg {
   background: white;
 }
 .secondary:hover:not(:disabled) {
-  background: #f3f5fb;
+  background: var(--background);
 }
 .text-button {
   background: transparent;
@@ -178,7 +180,7 @@ label {
   font-size: 12px;
   line-height: 1.7;
   padding: 12px;
-  border: 1px solid #dae2fa;
+  border: 1px solid var(--primary-border);
   background: var(--primary-soft);
   border-radius: 7px;
   margin: 16px 0;
@@ -194,22 +196,15 @@ label {
   text-decoration: none;
   width: fit-content;
 }
-.brand-mark {
-  color: white;
-  background: #4760d5;
-  display: grid;
-  place-items: center;
-  width: 31px;
-  height: 34px;
-  border-radius: 8px;
-}
-.brand-mark svg {
-  width: 21px;
-  height: 21px;
+.brand-logo {
+  display: block;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .brand-period {
-  margin-left: -8px;
-  color: #8fa2ff;
+  color: #68cf95;
 }
 .avatar {
   height: 36px;
@@ -221,7 +216,7 @@ label {
   font-size: 11px;
   font-weight: 600;
   color: var(--primary);
-  background: #e9edff;
+  background: var(--primary-soft);
   flex-shrink: 0;
 }
 .avatar.small {
@@ -291,7 +286,7 @@ label {
   border-radius: 10px;
   flex-shrink: 0;
 }
-.blue {
+.accent {
   color: var(--primary);
   background: var(--primary-soft);
 }

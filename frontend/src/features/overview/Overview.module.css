@@ -49,7 +49,7 @@
   padding: 28px 32px;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(110deg, white 20%, #f7f9ff);
+  background: linear-gradient(110deg, white 20%, #f4faf6);
 }
 .directoryHeading {
   display: flex;
@@ -80,7 +80,7 @@
   border-radius: 9px;
   padding: 8px 16px;
   opacity: 0.8;
-  box-shadow: 0 6px 25px #152b6410;
+  box-shadow: 0 6px 25px #16462910;
 }
 .directoryArt > div {
   padding: 10px 0;
@@ -100,7 +100,7 @@
   height: 5px;
   width: 30%;
   border-radius: 5px;
-  background: #e7ebf3;
+  background: #e5ede7;
 }
 .directoryArt b {
   margin-left: auto;

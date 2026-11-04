@@ -8,9 +8,12 @@ import {
   Users,
   LayoutDashboard,
   LockKeyhole,
+  UserCheck,
+  Check,
 } from 'lucide-react'
 import { Navigate } from 'react-router'
 import { useAuth } from './context'
+import { Brand } from '../../components/Brand'
 import styles from './Login.module.css'
 
 export function Login() {
@@ -68,16 +71,16 @@ export function Login() {
     <main className={styles.page}>
       <section className={styles.story} aria-label="About CrediSure Dashboard">
         <a href="/login" className="brand">
-          <span className="brand-mark">
-            <ShieldCheck aria-hidden="true" />
-          </span>
-          CrediSure<span className="brand-period">.</span>
+          <Brand />
         </a>
         <div className={styles.pitch}>
-          <span className={styles.eyebrow}>YOUR WORKSPACE, SIMPLIFIED</span>
+          <span className={styles.eyebrow}>
+            <span /> YOUR WORKSPACE, SIMPLIFIED
+          </span>
           <h1>
             A clear view.
-            <br />A confident next step.
+            <br />
+            <span>A confident next step.</span>
           </h1>
           <p>
             Your people and the numbers that matter.
@@ -86,8 +89,13 @@ export function Login() {
           </p>
           <div className={styles.preview} aria-hidden="true">
             <div className={styles.previewTop}>
-              <span className={styles.previewDots}>● ● ●</span>
+              <span className={styles.previewDots}>
+                <i />
+                <i />
+                <i />
+              </span>
               <span>Workspace overview</span>
+              <span className={styles.previewLabel}>PREVIEW</span>
             </div>
             <div className={styles.previewBody}>
               <div className={styles.previewRail}>
@@ -97,37 +105,75 @@ export function Login() {
               </div>
               <div className={styles.previewContent}>
                 <span className={styles.previewHeading}>
-                  Everything in perspective.
+                  Your people. In perspective.
                 </span>
                 <div className={styles.previewCards}>
-                  <span />
-                  <span />
-                  <span />
+                  <span>
+                    <Users size={16} />
+                    <b>User directory</b>
+                    <small>Everyone in one place</small>
+                  </span>
+                  <span>
+                    <UserCheck size={16} />
+                    <b>Account statuses</b>
+                    <small>A little more clarity</small>
+                  </span>
                 </div>
                 <div className={styles.previewRows}>
-                  {[0, 1, 2].map((row) => (
-                    <div key={row}>
-                      <i />
-                      <span />
-                      <b />
+                  {[
+                    { initials: 'AO', name: 'Amara Okafor', status: 'Active' },
+                    { initials: 'DB', name: 'Daniel Bello', status: 'Active' },
+                    { initials: 'CE', name: 'Chioma Eze', status: 'Pending' },
+                  ].map((row) => (
+                    <div key={row.initials}>
+                      <i>{row.initials}</i>
+                      <span>
+                        {row.name}
+                        <small>Workspace member</small>
+                      </span>
+                      <b
+                        className={
+                          row.status === 'Pending' ? styles.previewPending : ''
+                        }
+                      >
+                        <span />
+                        {row.status}
+                      </b>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </div>
+          <div className={styles.featureLine}>
+            <span>
+              <Check size={14} />
+              Clear overview
+            </span>
+            <span>
+              <Check size={14} />
+              Connected directory
+            </span>
+            <span>
+              <Check size={14} />
+              Less friction
+            </span>
+          </div>
         </div>
         <p className={styles.storyFooter}>
           <ShieldCheck size={16} aria-hidden="true" /> Clarity starts with the
           right information.
+          <span className={styles.storyFooterLine} />
+          <span>Built for your everyday.</span>
         </p>
       </section>
       <section className={styles.formSide} aria-labelledby="login-title">
         <div className={styles.formWrap}>
-          <span className={styles.lock}>
-            <LockKeyhole size={24} aria-hidden="true" />
-          </span>
-          <p className="eyebrow">WELCOME BACK</p>
+          <div className={styles.portalLabel}>
+            <LockKeyhole size={14} aria-hidden="true" />
+            ADMINISTRATOR PORTAL
+          </div>
+          <p className={styles.welcome}>Welcome back</p>
           <h2 id="login-title">Sign in to your workspace</h2>
           <p className={styles.subtitle}>
             Enter your administrator credentials to continue.
@@ -207,8 +253,11 @@ export function Login() {
             </button>
           </form>
           <p className={styles.hint}>
-            <LockKeyhole size={14} aria-hidden="true" /> Administrator access
+            <ShieldCheck size={16} aria-hidden="true" /> Administrator access
             only
+          </p>
+          <p className={styles.accountHelp}>
+            Use the administrator account provided for your workspace.
           </p>
         </div>
         <footer className={styles.footer}>

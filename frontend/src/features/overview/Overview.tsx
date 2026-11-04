@@ -19,7 +19,7 @@ const metrics = [
     label: 'Total users',
     hint: 'Everyone in your directory',
     icon: Users,
-    color: 'blue',
+    color: 'accent',
   },
   {
     key: 'active_users',
@@ -104,7 +104,7 @@ export function Overview() {
       <div className={styles.lower}>
         <section className={`panel ${styles.directory}`}>
           <div className={styles.directoryHeading}>
-            <span className="metric-icon blue">
+            <span className="metric-icon accent">
               <Users size={22} aria-hidden="true" />
             </span>
             <span className="subtle-label">USER DIRECTORY</span>

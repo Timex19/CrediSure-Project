@@ -103,7 +103,7 @@
   letter-spacing: 0.02em;
   color: var(--muted);
   padding: 15px 22px;
-  background: #fafbfe;
+  background: #f9fbfa;
   border-bottom: 1px solid var(--border);
 }
 .tableScroll td {
@@ -116,7 +116,7 @@
   border-bottom: 0;
 }
 .tableScroll tbody tr:hover {
-  background: #fafbff;
+  background: #f6faf7;
 }
 .name {
   display: flex;
