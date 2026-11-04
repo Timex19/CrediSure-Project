@@ -22,7 +22,11 @@ Production requires an API reverse proxy for `/api`, or an explicit `VITE_API_BA
 
 ## Behavior
 
-Login uses backend credential verification; tokens stay in memory. Refreshing signs out. Overview counts cover the full directory. User search/filter/page settings live in query parameters. Search is debounced 300 ms; status and page changes apply immediately. Superseded requests are canceled and their results ignored. All table updates hide previous results until the current response succeeds. Dates use UTC date-only parsing and the en-GB day/month/year display format.
+Login uses backend credential verification. The session is saved in tab-scoped `sessionStorage`; refresh restores the current route only after `/auth/me` validates it. Corrupt, expired or revoked saved sessions are cleared. Reload retains the original expiry, while logout clears storage before server revocation completes. A temporary restore failure blocks protected content and offers retry or sign-out. If storage is unavailable, login still works in memory and a notice explains the reload limitation. Only allowlisted session fields are saved; passwords and directory records are never persisted.
+
+Tab-scoped storage is readable by same-origin JavaScript and requires the same frontend origin. It is not a long-lived remember-me feature. See [MDN sessionStorage](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) for browser lifetime and policy behavior.
+
+Overview counts cover the full directory. User search/filter/page settings live in query parameters. Search is debounced 300 ms; status and page changes apply immediately. Superseded requests are canceled and their results ignored. All table updates hide previous results until the current response succeeds. Dates use UTC date-only parsing and the en-GB day/month/year display format.
 
 ## Checks
 

@@ -50,7 +50,7 @@ npm run dev
 
 Open the address printed by Vite. The development proxy reads `BACKEND_PROXY_TARGET` from `frontend/.env`; adjust it if the backend port changes. Restart Vite after changing environment configuration. API docs are available at `http://127.0.0.1:8000/docs`.
 
-The bearer token lives only in browser memory. Refreshing the browser requires signing in again. Directory navigation preserves the session. The default session expires after 30 minutes; the backend independently checks expiry and revocation.
+The bearer session is saved in tab-scoped `sessionStorage` so page reloads preserve sign-in and the current route/filters. On reload, the app validates the saved session with `/api/auth/me` before rendering protected pages. The original 30-minute expiry remains unchanged; reload never extends it. Logout clears saved state and revokes the server session. No password or directory data is saved in browser storage. Temporary restoration failures offer Retry or Return to sign in.
 
 ## Checks
 
@@ -91,6 +91,6 @@ Default test ports are 5274 and 8200. Configure `E2E_FRONTEND_PORT`, `E2E_BACKEN
 - `backend/app/`: configuration, database access, authentication and API routes.
 - `backend/tests/` and `frontend/e2e/`: API and browser verification.
 
-This is a local assessment application. User editing, registration, password recovery, persistent browser sessions and public deployment are outside scope. Public hosting requires HTTPS, an explicit frontend origin or reverse proxy, a persistent database volume, SPA route fallback, and a shared login limiter if using multiple workers. The included limiter allows 10 login attempts per minute per client IP within one process. CORS is not authentication.
+This is a local assessment application. User editing, registration, public password recovery, long-lived remembered sign-in and public deployment are outside scope. Public hosting requires HTTPS, an explicit frontend origin or reverse proxy, a persistent database volume, SPA route fallback, and a shared login limiter if using multiple workers. The included limiter allows 10 login attempts per minute per client IP within one process. CORS is not authentication.
 
 More details: [backend setup](backend/README.md) and [frontend setup](frontend/README.md).

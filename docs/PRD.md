@@ -31,7 +31,7 @@ Confirmed technology choices: React with Vite for the frontend; Python with Fast
 - Overview: total users, active users, inactive users, and pending users. Counts cover the full directory and do not change with table filters.
 - Navigation: Overview and Users are the only authenticated destinations. No decorative links to unfinished screens.
 - Delivery: locally runnable project and clear setup instructions. Public hosting is optional unless the assessor requires a live URL.
-- Session: short-lived bearer session held in browser memory. A browser reload requires signing in again; navigation within the app preserves the session. Persistent sign-in is outside the initial scope.
+- Session: a short-lived bearer session saved in tab-scoped `sessionStorage` following the user's request for reload persistence. Reload restores the current route/filters only after server validation. Keep the original absolute expiry and clear saved state on logout or invalidation; long-lived remember-me sessions remain outside scope.
 - The initial brief supplied no brand assets, wireframes, deadline, external API, deployment target, or evaluation rubric. The user subsequently supplied `credisure.webp` and requested a green primary theme; use the supplied logo unchanged and retain the name “CrediSure Dashboard”.
 
 ## 4. Goals and success criteria
@@ -61,6 +61,7 @@ Non-goals: lending workflows, credit scores, payments, analytics charts without 
 - Expired, invalid, or revoked sessions cause a clear sign-in prompt and removal of protected client data.
 - Logout revokes the server session, clears local state and cached protected data, and returns to login. If the request fails, local sign-out still completes and the user is told server revocation could not be confirmed.
 - Back navigation after logout cannot display previously cached directory data.
+- Reload preserves a valid session and the current route/query parameters after `/auth/me` validation. Protected content stays hidden during validation. Temporary validation failures offer retry or return to login without treating the saved session as authorized.
 
 ### R2 — Dashboard overview
 
@@ -147,7 +148,7 @@ Application error shape: `{error: {code, message, field_errors?}}`. Normalize fr
 ## 9. Security, quality, and performance
 
 - Verify passwords with a maintained password hashing library using Argon2id; no plaintext storage.
-- Generate cryptographically random opaque session tokens, store only their hashes, enforce a proposed 30-minute absolute expiry server-side, and revoke on logout. Do not put tokens in URLs or browser persistent storage.
+- Generate cryptographically random opaque session tokens, store only their hashes server-side, enforce a 30-minute absolute expiry, and revoke on logout. The frontend saves only allowlisted session metadata in tab-scoped `sessionStorage`; never put tokens in URLs or long-lived `localStorage`, or save passwords/directory data. Saved data is untrusted and must pass shape/expiry checks and server verification before access is restored. Reload must not extend expiry.
 - Keep administrator email/password, database location, allowed origins, API base URL, and timeouts configurable. Commit a placeholder-only `.env.example`; never expose server secrets as `VITE_*` values.
 - Use parameterized database queries and validated pagination bounds. Return only public directory fields.
 - Configure explicit CORS origins, avoid logging credentials/tokens, and use HTTPS for any public deployment. CORS is not authentication.

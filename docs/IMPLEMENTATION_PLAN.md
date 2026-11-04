@@ -15,7 +15,7 @@ The PRD and this plan preceded implementation as requested. Unspecified assessme
 ```text
 React + TypeScript (Vite)
   Routes: Login / Overview / Users / Not found
-  Auth context: administrator and in-memory bearer token
+  Auth context: tab-scoped bearer session and server-validated reload restoration
   Feature components: forms, summary cards, directory controls/table
   Shared API client: auth header, timeout, normalized errors
        |
@@ -92,7 +92,7 @@ Adapt names to actual code as it develops; do not create empty abstraction folde
 ### Phase 0 — Review scope and contracts (current phase)
 
 1. Review the six-requirement acceptance matrix and proposed data fields, summary metrics, and status values.
-2. Confirm the deliberate in-memory session behavior: page reload signs out; route navigation does not.
+2. The original scope used memory-only sessions. The user subsequently requested reload persistence: restore tab-scoped session storage through `/auth/me`, retaining expiry and blocking protected routes until validation succeeds.
 3. Incorporate any assessor-provided design, API, deadline, or submission instructions.
 4. Agree the visual direction and implementation scope before writing application code.
 
@@ -188,7 +188,7 @@ Secrets belong only in backend configuration. URLs and environment-specific addr
 | --- | --- |
 | Brief omits API/design/rubric details | Keep defaults explicit; incorporate supplied material before coding |
 | Extra features consume assessment time | Complete the six required flows before considering enhancements |
-| Reload signs out | Document and review the intentional memory-only session; add persistence only if required |
+| Saved session invalid or server temporarily unavailable | Validate before restoring protected pages; clear revoked/expired sessions and offer retry for temporary failures |
 | Stale responses misrepresent search or API status | Cancellation plus response-identity checks and focused race tests |
 | Database growth/concurrent deployment | Keep local assessment scope; reassess storage/indexing if scale is requested |
 | Public demo exposes credential endpoint | Require throttling, HTTPS, secure configuration and safe demo credentials before public release |

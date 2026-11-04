@@ -17,9 +17,9 @@ All six assessment features are implemented: login, overview, user table, search
 | Frontend TypeScript check | Passed, including browser-test/config files |
 | Frontend Oxlint | Passed |
 | Frontend Prettier check | Passed |
-| Frontend Vitest suite | 13 passed across 7 files after the overview/directory refinement |
+| Frontend Vitest suite | 24 passed across 8 files after reload persistence |
 | Frontend production build | Passed |
-| Playwright Chromium suite | 7 passed after the overview/directory refinement; complete runner exit code 0 |
+| Playwright Chromium suite | 9 passed after reload persistence; complete runner exit code 0 |
 | Fresh frontend dependencies | `npm ci` and production build passed in `.verification/clean/frontend` |
 | Fresh backend environment | Pinned dependency installation, seed, health, login, directory and pip check passed in `.verification/clean/backend` |
 
@@ -86,11 +86,17 @@ Diagnosed a configured administrator email differing from the stored database em
 
 Executed verification: 24 backend tests passed, including reset login success, old credential/session rejection, stable administrator ID, preserved directory records, invalid-password rejection and missing-account refusal. Ruff lint/format checks passed. Applied the local configured credentials and verified sign-in, protected access to all 80 users, and logout through the running backend on port 8000. Frontend code and dependencies were unchanged; prior frontend test/build results were not rerun.
 
+### Reload session persistence
+
+The user requested sign-in to survive refresh. The original memory-only provider reset to unauthenticated on every reload. Sessions now persist in tab-scoped `sessionStorage` and are validated with `/auth/me` before protected content mounts. Restoration preserves the existing route and query, updates administrator metadata from the server, and retains the original expiry. Invalid/expired/revoked saved sessions are cleared. Temporary backend failures show a guarded retry/sign-out screen. Logout clears saved state before awaiting revocation. Browser storage restrictions retain memory-only login with an explanatory notice.
+
+Executed verification: 24 frontend tests passed, including allowlisted persistence without password fields, validation before rendering, rejected/corrupt/expired sessions, retry, logout failure, StrictMode cancellation, expiry cleanup and blocked storage. Nine Chromium scenarios passed: overview and filtered/paginated directory reload without another login, unchanged expiry, logout followed by reload, expired saved state, real server revocation and temporary validation failure/retry. Type checking, production build, Oxlint and Prettier passed. No backend code or dependency changes were required. The pre-existing user edit in `backend/README.md` was left untouched.
+
 ### Release limitations
 
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.
-- The frontend token is intentionally memory-only; browser reload requires login. Expiry is 30 minutes by default and enforced by the server.
+- Sign-in persistence is tab-scoped, requires available browser storage and keeps the original server expiry (30 minutes by default). Same-origin JavaScript can read session storage; this is not a long-lived remember-me feature.
 - The directory is read-only. Account-status changes, registration, password reset and persistent sessions are outside scope.
 - No public hosting or production rollout was performed. Public deployment needs HTTPS, persistent storage, explicit API routing/CORS, SPA history fallback and a shared limiter for multiple processes. The current IP-based limiter is process-local and does not trust forwarded-IP headers.
 - The production bundle needs `/api` reverse-proxied or `VITE_API_BASE_URL` set to the deployed API; the Vite development proxy is development-only.
