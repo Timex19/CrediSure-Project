@@ -10,6 +10,7 @@ from app.auth import token_hash
 from app.config import Settings
 from app.database import connect
 from app.main import create_app
+from app.reset_admin import reset_admin
 from app.seed import seed
 
 
@@ -236,3 +237,56 @@ def test_seed_upgrades_old_demo_names_without_resetting_other_data(setup):
         ] == sessions
         assert database.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 80
     assert client.get("/api/auth/me", headers=headers).status_code == 200
+
+
+def test_explicit_admin_reset_changes_credentials_and_revokes_sessions(setup):
+    client, settings, old_password = setup
+    headers, _ = sign_in(setup)
+    with connect(settings.database_path) as database:
+        before_users = [
+            tuple(row) for row in database.execute("SELECT * FROM users ORDER BY id")
+        ]
+        admin_id = database.execute("SELECT id FROM administrators").fetchone()[0]
+    new_password = secrets.token_urlsafe(24)
+    settings.admin_email = "new-administrator@example.com"
+    settings.admin_password = SecretStr(new_password)
+    # Environment changes and normal seeding alone must not silently replace accounts.
+    with pytest.raises(ValueError, match="already exists"):
+        seed(settings)
+    reset_admin(settings)
+    assert client.get("/api/auth/me", headers=headers).status_code == 401
+    assert (
+        client.post(
+            "/api/auth/login",
+            json={"email": "evaluator@example.com", "password": old_password},
+        ).status_code
+        == 401
+    )
+    response = client.post(
+        "/api/auth/login",
+        json={"email": str(settings.admin_email), "password": new_password},
+    )
+    assert response.status_code == 200
+    assert response.json()["administrator"]["id"] == admin_id
+    with connect(settings.database_path) as database:
+        assert [
+            tuple(row) for row in database.execute("SELECT * FROM users ORDER BY id")
+        ] == before_users
+
+
+def test_admin_reset_rejects_invalid_config_and_uninitialized_accounts(setup):
+    _, settings, _ = setup
+    with connect(settings.database_path) as database:
+        original = tuple(database.execute("SELECT * FROM administrators").fetchone())
+    settings.admin_password = SecretStr("short")
+    with pytest.raises(ValueError, match="at least 12"):
+        reset_admin(settings)
+    with connect(settings.database_path) as database:
+        assert (
+            tuple(database.execute("SELECT * FROM administrators").fetchone())
+            == original
+        )
+        database.execute("DELETE FROM administrators")
+    settings.admin_password = SecretStr(secrets.token_urlsafe(24))
+    with pytest.raises(ValueError, match="exactly one"):
+        reset_admin(settings)

@@ -114,16 +114,9 @@ DEMO_USER_NAMES = (
 
 
 def seed(settings: Settings) -> None:
-    if settings.admin_email is None or settings.admin_password is None:
-        raise ValueError("Set CREDISURE_ADMIN_EMAIL and CREDISURE_ADMIN_PASSWORD first")
-    password = settings.admin_password.get_secret_value()
-    if len(password) < 12:
-        raise ValueError(
-            "The administrator password must contain at least 12 characters"
-        )
+    email, password = settings.administrator_credentials()
     initialize(settings.database_path)
     with connect(settings.database_path) as database:
-        email = str(settings.admin_email).lower()
         existing = database.execute(
             "SELECT id FROM administrators WHERE email = ?", (email,)
         ).fetchone()

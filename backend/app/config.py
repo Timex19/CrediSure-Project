@@ -23,6 +23,19 @@ class Settings(BaseSettings):
     admin_password: SecretStr | None = None
     session_minutes: int = Field(default=30, ge=1, le=1440)
 
+    def administrator_credentials(self) -> tuple[str, str]:
+        """Read validated credentials for explicit seed/reset commands only."""
+        if self.admin_email is None or self.admin_password is None:
+            raise ValueError(
+                "Set CREDISURE_ADMIN_EMAIL and CREDISURE_ADMIN_PASSWORD first"
+            )
+        password = self.admin_password.get_secret_value()
+        if len(password) < 12:
+            raise ValueError(
+                "The administrator password must contain at least 12 characters"
+            )
+        return str(self.admin_email).lower(), password
+
     @field_validator("database_path")
     @classmethod
     def resolve_database_path(cls, value: Path) -> Path:
