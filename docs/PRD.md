@@ -125,7 +125,7 @@ Use locally bundled fictional profile portraits for the synthetic directory, wit
 | Directory user | id, full_name, email, role (`admin` or `member`), status (`active`, `inactive`, `pending`), joined_date (`YYYY-MM-DD`) |
 | Session | token hash, administrator ID, UTC created_at and expires_at |
 
-Administrator credentials are separate from directory records. Seed at least 60 synthetic directory records across statuses and roles to exercise multiple pages. Seeding is deterministic and idempotent; never reset data automatically at startup.
+Administrator credentials are separate from directory records. Seed 80 synthetic directory records with distinct Nigerian full names and surnames across statuses and roles to exercise multiple pages. Seeding is deterministic and idempotent; never reset data automatically at startup. Recognizable legacy demo records may have their names and matching email addresses upgraded by the explicit seed command; preserve edited profiles and all non-name account data.
 
 ### Proposed endpoints
 

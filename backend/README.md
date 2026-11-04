@@ -19,6 +19,8 @@ Preserve an existing `.env`. Set administrator email/password locally (minimum 1
 
 Seeding creates the schema and 80 synthetic users, preserves existing credentials, and refuses to add a second administrator with a different email. It never resets data on server startup. Local workspace credentials have already been generated in the ignored `.env`; no credentials are committed.
 
+Demo users have 80 distinct Nigerian full names and surnames, with matching synthetic email addresses. Re-running seed upgrades names/emails only for rows whose ID, full name and email still match the original generated demo records. It preserves custom or edited profiles, roles, statuses, joined dates, administrator credentials and sessions.
+
 ## Configuration
 
 Process variables override `backend/.env`.

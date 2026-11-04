@@ -10,6 +10,7 @@ A read-only administrator dashboard built with React, TypeScript and Vite, backe
 - Request progress, completion time, error feedback and retry.
 - Responsive sidebar/mobile drawer with keyboard support.
 - Synthetic, deterministic user data; no real customer data.
+- Eighty distinct Nigerian demo names with unique surnames and matching synthetic email addresses.
 - Bundled fictional portraits, a recent-user overview and an account-status distribution derived from API counts. See [asset notes and generation prompt](docs/ASSETS.md).
 
 [PRD](docs/PRD.md) · [Implementation plan](docs/IMPLEMENTATION_PLAN.md) · [Verification evidence](docs/VALIDATION.md)

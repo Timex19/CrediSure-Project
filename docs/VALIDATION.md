@@ -10,7 +10,7 @@ All six assessment features are implemented: login, overview, user table, search
 
 | Check | Result |
 | --- | --- |
-| Backend pytest suite | 20 passed |
+| Backend pytest suite | 22 passed after the distinct-name update |
 | Backend Ruff lint | Passed |
 | Backend Ruff format check | Passed |
 | Backend pip dependency check | Passed |
@@ -60,7 +60,7 @@ Verified against the user's running backend on port 8000: login using the locall
 
 The supplied `credisure.webp` is used unchanged in the shared brand lockup and favicon. The primary theme now uses green (`#087747`), with matching sidebar, focus, and surface accents. The login has a forest-green illustration panel, clearer form hierarchy, larger form controls, and a compact mobile header. Its decorative workspace preview is labeled and hidden from assistive technology.
 
-For this frontend update, the 9 frontend tests, production build, lint/type/format checks and all 6 Chromium browser scenarios passed. Browser checks additionally verified that the supplied logo loads, that login has no horizontal overflow at 320/375/768/1024/1440/1920 px, and that desktop login fits within a 936 px viewport height. Updated login desktop/mobile and overview screenshots were visually inspected. Backend code was unchanged, so the earlier 20-test backend result above is historical evidence for this refinement rather than a rerun.
+For this frontend update, the 9 frontend tests, production build, lint/type/format checks and all 6 Chromium browser scenarios passed. Browser checks additionally verified that the supplied logo loads, that login has no horizontal overflow at 320/375/768/1024/1440/1920 px, and that desktop login fits within a 936 px viewport height. Updated login desktop/mobile and overview screenshots were visually inspected. Backend code was unchanged, so the earlier 20-test backend result is historical evidence for this refinement rather than a rerun.
 
 Calculated text contrast: white on the green primary is 5.61:1, muted text on white is 5.04:1, and primary text on white is 14.01:1. These spot checks are not a complete accessibility audit.
 
@@ -68,9 +68,17 @@ Calculated text contrast: white on the green primary is 5.61:1, muted text on wh
 
 The overview now displays four real recent directory records and an account-distribution chart calculated from the summary API. Counts link to matching status filters. Recent users have independent loading, failure/retry and empty states; the main request indicator is explicitly labeled as a summary request. The directory now has larger portraits, clearer typography, aligned controls, a working refresh action and a mobile horizontal-scroll hint. Backend endpoints and database schema are unchanged.
 
-Verification for this update: 13 frontend tests passed, including portrait-failure fallback, recent-user retry independent of summary, correct account-share calculation and zero-user rendering. Seven Chromium scenarios passed, covering real portrait loading, metric-to-filter navigation, refresh, and intercepted portrait failure with usable initials and names. Existing search/filter/pagination/authentication/recovery/responsive checks continue to pass. Production build/type check, Oxlint and Prettier passed. Desktop/mobile overview and directory screenshots were visually inspected. The 20 backend tests above were not rerun because the backend was unchanged.
+Verification for this update: 13 frontend tests passed, including portrait-failure fallback, recent-user retry independent of summary, correct account-share calculation and zero-user rendering. Seven Chromium scenarios passed, covering real portrait loading, metric-to-filter navigation, refresh, and intercepted portrait failure with usable initials and names. Existing search/filter/pagination/authentication/recovery/responsive checks continue to pass. Production build/type check, Oxlint and Prettier passed. Desktop/mobile overview and directory screenshots were visually inspected. The then-current 20 backend tests were not rerun because the backend was unchanged.
 
 The generated demo portrait asset is bundled as a single 183,460-byte WebP, down from the 2,384,612-byte generation output, without changing dimensions or composition. Sixteen fictional portraits are reused for 80 synthetic profiles; they are not real-user photographs. See [asset notes and exact generation prompt](ASSETS.md). No external portrait network service or chart dependency was introduced.
+
+### Distinct Nigerian demo names
+
+Replaced the repeated first-name/surname cross product with 80 explicit fictional Nigerian full names. All 80 full names, surnames and generated email addresses are distinct. Stable IDs, roles, statuses, joined dates and portrait assignments remain unchanged.
+
+The explicit seed command updates an existing row only when its ID, full name and email match the original demo fixture. It changes only the full name and corresponding synthetic email, preserving custom/edited profiles and non-name account data. Re-running it remains idempotent. The existing local database was backed up under ignored `.verification/`, updated, and checked to preserve all IDs, roles, statuses, dates, administrator records and session records.
+
+Executed verification: 22 backend tests passed, including uniqueness and guarded legacy-upgrade coverage; seven browser scenarios passed with updated search results and profile names. Backend Ruff lint/format checks and frontend TypeScript, Oxlint and Prettier checks passed. Frontend component tests were not rerun for this data-only change; their earlier 13-test result remains historical evidence.
 
 ### Outstanding environments
 
