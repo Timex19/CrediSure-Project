@@ -7,7 +7,7 @@ from argon2 import PasswordHasher
 from app.config import Settings
 from app.database import connect, initialize
 
-FIRST_NAMES = (
+_LEGACY_FIRST_NAMES = (
     "Amara",
     "Daniel",
     "Chioma",
@@ -25,7 +25,92 @@ FIRST_NAMES = (
     "Nneka",
     "Ibrahim",
 )
-LAST_NAMES = ("Okafor", "Adeyemi", "Bello", "Eze", "Williams")
+_LEGACY_LAST_NAMES = ("Okafor", "Adeyemi", "Bello", "Eze", "Williams")
+
+
+# Explicit fictional profiles avoid repeating a first-name/surname cross product.
+DEMO_USER_NAMES = (
+    "Amara Okafor",
+    "Tobiloba Adeyemi",
+    "Chioma Nwankwo",
+    "Chinedu Eze",
+    "Fatima Abdullahi",
+    "Emeka Obi",
+    "Zainab Bello",
+    "Oluwaseun Adebayo",
+    "Adaeze Okonkwo",
+    "Damilola Akinwale",
+    "Aisha Mohammed",
+    "Chukwudi Nnamdi",
+    "Folashade Ogunleye",
+    "Babatunde Oladipo",
+    "Nneka Umeh",
+    "Ibrahim Sani",
+    "Chiamaka Onyekwere",
+    "Olumide Ajayi",
+    "Hauwa Garba",
+    "Ikenna Nwosu",
+    "Temitope Balogun",
+    "Obinna Ekwueme",
+    "Aminat Yusuf",
+    "Olakunle Adegbite",
+    "Uchenna Onwudiwe",
+    "Nnamdi Ibe",
+    "Aderonke Osundare",
+    "Suleiman Musa",
+    "Ogechi Ezeani",
+    "Adewale Afolayan",
+    "Maryam Ibrahim",
+    "Ifeanyi Okeke",
+    "Abimbola Ojo",
+    "Chijioke Anozie",
+    "Khadija Usman",
+    "Ayodeji Fashola",
+    "Ngozi Nwachukwu",
+    "Jide Alabi",
+    "Yetunde Lawal",
+    "Abubakar Danjuma",
+    "Chinelo Opara",
+    "Oladimeji Akinola",
+    "Hadiza Kabiru",
+    "Osagie Igbinedion",
+    "Ebele Nwobodo",
+    "Akinwumi Sobowale",
+    "Funmilayo Adesina",
+    "Mubarak Gidado",
+    "Adesewa Shonibare",
+    "Chibuzor Ezeoha",
+    "Nafisa Shehu",
+    "Oghenekaro Okotie",
+    "Ndidi Madubuko",
+    "Taiwo Adegoke",
+    "Omotola Fadeyi",
+    "Abdulrahman Dantata",
+    "Ezinne Uzochukwu",
+    "Olalekan Onabanjo",
+    "Halima Maiyaki",
+    "Akachukwu Enemuo",
+    "Morenike Akinpelu",
+    "Kelechi Uzodimma",
+    "Efemena Edevbie",
+    "Anietie Udoh",
+    "Simiat Salami",
+    "Chukwuma Igwe",
+    "Nkiruka Okwuosa",
+    "Terna Aondoakaa",
+    "Iniobong Etim",
+    "Boluwatife Adetunji",
+    "Chidinma Iheanacho",
+    "Farouk Rabiu",
+    "Oluwakemi Arowolo",
+    "Esosa Obaseki",
+    "Ijeoma Okechukwu",
+    "Tochukwu Nwafor",
+    "Rukayat Bamidele",
+    "Opeyemi Ogundipe",
+    "Arit Ekong",
+    "Umar Suleiman",
+)
 
 
 def seed(settings: Settings) -> None:
@@ -51,18 +136,31 @@ def seed(settings: Settings) -> None:
                 "INSERT INTO administrators(email, password_hash) VALUES (?, ?)",
                 (email, PasswordHasher().hash(password)),
             )
-        for index in range(80):
-            first = FIRST_NAMES[index % len(FIRST_NAMES)]
-            last = LAST_NAMES[index // len(FIRST_NAMES)]
+        for index, full_name in enumerate(DEMO_USER_NAMES):
+            user_email = full_name.lower().replace(" ", ".") + "@example.com"
             database.execute(
                 "INSERT OR IGNORE INTO users VALUES (?, ?, ?, ?, ?, ?)",
                 (
                     index + 1,
-                    f"{first} {last}",
-                    f"{first.lower()}.{last.lower()}@example.com",
+                    full_name,
+                    user_email,
                     "admin" if index % 9 == 0 else "member",
                     ("active", "active", "active", "pending", "inactive")[index % 5],
                     (date(2026, 1, 5) + timedelta(days=index * 3)).isoformat(),
+                ),
+            )
+            # Upgrade only identifiable old demo rows, never edited/custom profiles.
+            old_first = _LEGACY_FIRST_NAMES[index % len(_LEGACY_FIRST_NAMES)]
+            old_last = _LEGACY_LAST_NAMES[index // len(_LEGACY_FIRST_NAMES)]
+            database.execute(
+                "UPDATE users SET full_name = ?, email = ? "
+                "WHERE id = ? AND full_name = ? AND email = ?",
+                (
+                    full_name,
+                    user_email,
+                    index + 1,
+                    f"{old_first} {old_last}",
+                    f"{old_first.lower()}.{old_last.lower()}@example.com",
                 ),
             )
 

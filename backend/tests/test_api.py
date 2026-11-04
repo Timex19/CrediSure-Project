@@ -185,3 +185,54 @@ def test_parallel_protected_requests_use_independent_connections(setup):
         )
     assert all(response.status_code == 200 for response in responses)
     assert all(len(response.json()["items"]) == 25 for response in responses)
+
+
+def test_demo_profiles_have_distinct_names_and_surnames(setup):
+    _, settings, _ = setup
+    with connect(settings.database_path) as database:
+        rows = database.execute("SELECT full_name, email FROM users").fetchall()
+    assert len(rows) == 80
+    assert len({row["full_name"] for row in rows}) == 80
+    assert len({row["full_name"].rsplit(" ", 1)[1] for row in rows}) == 80
+    assert len({row["email"] for row in rows}) == 80
+
+
+def test_seed_upgrades_old_demo_names_without_resetting_other_data(setup):
+    client, settings, _ = setup
+    headers, _ = sign_in(setup)
+    with connect(settings.database_path) as database:
+        administrators = [
+            tuple(row) for row in database.execute("SELECT * FROM administrators")
+        ]
+        sessions = [tuple(row) for row in database.execute("SELECT * FROM sessions")]
+        database.execute(
+            "UPDATE users SET full_name = 'Daniel Okafor', "
+            "email = 'daniel.okafor@example.com', role = 'admin', "
+            "status = 'pending', joined_date = '2025-12-01' WHERE id = 2"
+        )
+        database.execute(
+            "UPDATE users SET full_name = 'Custom Profile', "
+            "email = 'custom@example.com' WHERE id = 3"
+        )
+    seed(settings)
+    seed(settings)
+    with connect(settings.database_path) as database:
+        upgraded = database.execute("SELECT * FROM users WHERE id = 2").fetchone()
+        assert upgraded["full_name"] == "Tobiloba Adeyemi"
+        assert upgraded["email"] == "tobiloba.adeyemi@example.com"
+        assert (upgraded["role"], upgraded["status"], upgraded["joined_date"]) == (
+            "admin",
+            "pending",
+            "2025-12-01",
+        )
+        custom = database.execute("SELECT * FROM users WHERE id = 3").fetchone()
+        assert custom["full_name"] == "Custom Profile"
+        assert custom["email"] == "custom@example.com"
+        assert [
+            tuple(row) for row in database.execute("SELECT * FROM administrators")
+        ] == administrators
+        assert [
+            tuple(row) for row in database.execute("SELECT * FROM sessions")
+        ] == sessions
+        assert database.execute("SELECT COUNT(*) FROM users").fetchone()[0] == 80
+    assert client.get("/api/auth/me", headers=headers).status_code == 200

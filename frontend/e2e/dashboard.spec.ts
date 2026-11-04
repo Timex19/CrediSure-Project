@@ -57,9 +57,9 @@ test('real API: login, overview, directory filters, pages, history and logout', 
   await page.getByRole('button', { name: 'Next page' }).click()
   await expect(page.getByText('Page 2 of 8')).toBeVisible()
   await page.getByLabel('Search users by name or email').fill('Amara')
-  await expect(page.getByText('Showing 1–5 of 5 users')).toBeVisible()
+  await expect(page.getByText('Showing 1–1 of 1 users')).toBeVisible()
   await page.getByLabel('Status', { exact: true }).selectOption('active')
-  await expect(page.getByText('Showing 1–3 of 3 users')).toBeVisible()
+  await expect(page.getByText('Showing 1–1 of 1 users')).toBeVisible()
   await expect(page).toHaveURL(/status=active/)
   await page.goBack()
   await expect(page.getByLabel('Status', { exact: true })).toHaveValue('')
@@ -327,12 +327,12 @@ test('simulated portrait failure keeps initials and directory names usable', asy
   await signIn(page)
   const recent = page.getByRole('region', { name: 'Recently joined' })
   await expect(recent.locator('img').first()).toBeHidden()
-  await expect(recent.getByText('Ibrahim Williams')).toBeVisible()
+  await expect(recent.getByText('Umar Suleiman')).toBeVisible()
   await page.getByRole('link', { name: 'View users', exact: true }).click()
   await expect(page.getByText('Showing 1–10 of 80 users')).toBeVisible()
   await expect(page.locator('tbody img').first()).toBeHidden()
-  await expect(page.locator('tbody tr').first().getByText('IW')).toBeVisible()
+  await expect(page.locator('tbody tr').first().getByText('US')).toBeVisible()
   await expect(
-    page.locator('tbody tr').first().getByText('Ibrahim Williams'),
+    page.locator('tbody tr').first().getByText('Umar Suleiman'),
   ).toBeVisible()
 })
