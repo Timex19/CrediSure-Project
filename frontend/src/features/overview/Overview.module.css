@@ -1,0 +1,30 @@
+.cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.card { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 22px; box-shadow: var(--card-shadow); }
+.cardTop { display: flex; gap: 12px; align-items: center; }
+.metricLabel { color: var(--muted); font-size: 12px; font-weight: 500; }
+.value { font-size: 37px; display: block; font-weight: 600; line-height: 1.2; letter-spacing: -.04em; margin: 22px 0 7px; font-variant-numeric: tabular-nums; }
+.card > p { font-size: 11px; color: var(--muted); }
+.valueSkeleton { display: block; width: 65px; height: 44px; margin: 22px 0 7px; }
+.lower { display: grid; grid-template-columns: 1.2fr 1fr; gap: 22px; margin-top: 28px; }
+.directory { padding: 28px 32px; position: relative; overflow: hidden; background: linear-gradient(110deg, white 20%, #f7f9ff); }
+.directoryHeading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.directory h2 { font-size: 28px; line-height: 1.25; letter-spacing: -.04em; margin: 27px 0 12px; }
+.directory > p { font-size: 13px; max-width: 320px; color: var(--muted); line-height: 1.8; }
+.directory > a { margin-top: 24px; }
+.directoryArt { margin: 30px 0 -70px 45px; transform: rotate(-6deg); border: 1px solid var(--border); background: white; border-radius: 9px; padding: 8px 16px; opacity: .8; box-shadow: 0 6px 25px #152b6410; }
+.directoryArt > div { padding: 10px 0; display: flex; gap: 14px; align-items: center; border-bottom: 1px solid var(--border); }
+.directoryArt > div > span { font-size: 10px; border-radius: 50%; background: var(--primary-soft); color: var(--primary); padding: 10px; }
+.directoryArt i { height: 5px; width: 30%; border-radius: 5px; background: #e7ebf3; }
+.directoryArt b { margin-left: auto; font-weight: 500; }
+.statusGuide { padding: 32px; }
+.statusGuide h2 { font-size: 21px; letter-spacing: -.03em; margin: 12px 0 10px; }
+.statusGuide > p:not(:first-child) { font-size: 12px; line-height: 1.8; color: var(--muted); }
+.statusGuide dl { margin: 26px 0 24px; }
+.statusGuide dl div + div { margin-top: 20px; }
+.statusGuide dt { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+.statusGuide dd { font-size: 11px; color: var(--muted); margin: 6px 0 0 16px; line-height: 1.6; }
+.note { border-top: 1px solid var(--border); padding-top: 18px; display: flex; align-items: center; gap: 10px; font-size: 10px; color: var(--muted); }
+.note svg { flex-shrink: 0; color: var(--primary); }
+.footnote { font-size: 11px; color: var(--muted); text-align: center; margin: 26px 0 0; }
+@media(max-width: 1200px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width: 700px) { .lower { grid-template-columns: 1fr; } .card { padding: 18px; } .cardTop { gap: 8px; flex-wrap: wrap; } .metricLabel { font-size: 11px; } .directory, .statusGuide { padding: 24px; } }
