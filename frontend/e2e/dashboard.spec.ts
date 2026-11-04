@@ -12,6 +12,11 @@ async function signIn(page: Page) {
     page.getByRole('heading', { name: 'A little clarity for your day.' }),
   ).toBeVisible()
   await expect(page.getByRole('status')).toContainText('Updated')
+  await expect(
+    page
+      .getByRole('region', { name: 'Recently joined' })
+      .locator('[aria-busy]'),
+  ).toHaveAttribute('aria-busy', 'false')
 }
 
 test('real API: login, overview, directory filters, pages, history and logout', async ({
@@ -20,12 +25,35 @@ test('real API: login, overview, directory filters, pages, history and logout', 
   await page.setViewportSize({ width: 1440, height: 1000 })
   await signIn(page)
   await expect(page.getByLabel('User summary')).toContainText('80')
+  await expect(
+    page.getByRole('img', { name: '48 active, 16 inactive, 16 pending users' }),
+  ).toBeVisible()
+  await page.getByRole('link', { name: 'View active users' }).click()
+  await expect(page.getByLabel('Status', { exact: true })).toHaveValue('active')
+  await expect(page.getByText('Showing 1–10 of 48 users')).toBeVisible()
+  await page.getByRole('link', { name: 'Overview', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('Updated')
+  await expect(
+    page
+      .getByRole('region', { name: 'Recently joined' })
+      .locator('[aria-busy]'),
+  ).toHaveAttribute('aria-busy', 'false')
   await page.screenshot({
     path: 'test-results/overview-desktop.png',
     fullPage: true,
   })
   await page.getByRole('link', { name: 'View users' }).click()
   await expect(page.getByText('Showing 1–10 of 80 users')).toBeVisible()
+  await page.getByRole('button', { name: 'Refresh users' }).click()
+  await expect(page.getByText('Showing 1–10 of 80 users')).toBeVisible()
+  await expect
+    .poll(() =>
+      page
+        .locator('tbody img')
+        .first()
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBeGreaterThan(0)
   await page.getByRole('button', { name: 'Next page' }).click()
   await expect(page.getByText('Page 2 of 8')).toBeVisible()
   await page.getByLabel('Search users by name or email').fill('Amara')
@@ -41,12 +69,12 @@ test('real API: login, overview, directory filters, pages, history and logout', 
   ).toBeVisible()
   await page.getByRole('button', { name: 'Clear filters' }).first().click()
   await expect(page.getByText('Showing 1–10 of 80 users')).toBeVisible()
-  await page.getByLabel('Rows per page').selectOption('25')
-  await expect(page.getByText('Showing 1–25 of 80 users')).toBeVisible()
   await page.screenshot({
     path: 'test-results/users-desktop.png',
     fullPage: true,
   })
+  await page.getByLabel('Rows per page').selectOption('25')
+  await expect(page.getByText('Showing 1–25 of 80 users')).toBeVisible()
   await page.getByRole('button', { name: 'Sign out' }).click()
   await expect(
     page.getByRole('heading', { name: 'Sign in to your workspace' }),
@@ -226,6 +254,11 @@ test('simulated unauthorized response clears protected data', async ({
 test('simulated zero data, slow request, not-found and failed logout recovery', async ({
   page,
 }) => {
+  await page.route('**/api/users?*', (route) =>
+    route.fulfill({
+      json: { items: [], total: 0, page: 1, page_size: 10, total_pages: 0 },
+    }),
+  )
   await page.route('**/api/dashboard/summary', (route) =>
     route.fulfill({
       json: {
@@ -283,4 +316,23 @@ test('simulated zero data, slow request, not-found and failed logout recovery', 
   await expect(page.getByRole('status')).toContainText(
     'Server session revocation could not be confirmed',
   )
+})
+
+test('simulated portrait failure keeps initials and directory names usable', async ({
+  page,
+}) => {
+  await page.route('**/images/demo-portraits.webp', (route) =>
+    route.abort('failed'),
+  )
+  await signIn(page)
+  const recent = page.getByRole('region', { name: 'Recently joined' })
+  await expect(recent.locator('img').first()).toBeHidden()
+  await expect(recent.getByText('Ibrahim Williams')).toBeVisible()
+  await page.getByRole('link', { name: 'View users', exact: true }).click()
+  await expect(page.getByText('Showing 1–10 of 80 users')).toBeVisible()
+  await expect(page.locator('tbody img').first()).toBeHidden()
+  await expect(page.locator('tbody tr').first().getByText('IW')).toBeVisible()
+  await expect(
+    page.locator('tbody tr').first().getByText('Ibrahim Williams'),
+  ).toBeVisible()
 })

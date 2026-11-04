@@ -68,6 +68,7 @@ Non-goals: lending workflows, credit scores, payments, analytics charts without 
 - Each card has an unambiguous label and a nonnegative integer. Total equals Active + Inactive + Pending.
 - A successful empty dataset displays zero counts. Loading placeholders and a failure message with Retry are distinct states.
 - Provide a clear action to open the user directory. Do not display invented trends, revenue, or percentage growth.
+- Show the four most recently joined users from the directory API, with independent loading/error/empty handling. Account distribution uses the summary status counts; the active share is active divided by total, with an explicit zero-user state. Summary cards and distribution links open the corresponding directory filter.
 
 ### R3 — User directory
 
@@ -112,7 +113,7 @@ Visual direction: a restrained light interface, neutral page background, white s
 
 Use semantic landmarks, headings, form labels, table headers, visible focus, logical tab order, and meaningful icon labels. Aim for WCAG 2.2 AA: normal text contrast at least 4.5:1, large text at least 3:1, and controls with sufficient non-text contrast. Prefer 44 px touch targets. Respect reduced-motion preferences. Treat accessibility as an implementation and verification target, not a certification claim.
 
-Use simple text initials instead of externally hosted avatars. No mandatory custom font, decorative animation, chart library, or dark mode. The design skill's generic marketing-layout/dark-mode suggestions are not suitable for this brief; the chosen layout follows dashboard tasks and the accessibility guidance.
+Use locally bundled fictional profile portraits for the synthetic directory, with initials as a fallback on image failure. The portrait library is illustrative and reused across the 80 synthetic profiles; no external avatar service or real user photograph is required. No mandatory custom font, decorative animation, chart library, or dark mode. The design skill's generic marketing-layout/dark-mode suggestions are not suitable for this brief; the chosen layout follows dashboard tasks and the accessibility guidance.
 
 ## 8. Data and API contract
 

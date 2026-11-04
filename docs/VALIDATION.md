@@ -17,9 +17,9 @@ All six assessment features are implemented: login, overview, user table, search
 | Frontend TypeScript check | Passed, including browser-test/config files |
 | Frontend Oxlint | Passed |
 | Frontend Prettier check | Passed |
-| Frontend Vitest suite | 9 passed across 5 files |
+| Frontend Vitest suite | 13 passed across 7 files after the overview/directory refinement |
 | Frontend production build | Passed |
-| Playwright Chromium suite | 6 passed; complete runner exit code 0 |
+| Playwright Chromium suite | 7 passed after the overview/directory refinement; complete runner exit code 0 |
 | Fresh frontend dependencies | `npm ci` and production build passed in `.verification/clean/frontend` |
 | Fresh backend environment | Pinned dependency installation, seed, health, login, directory and pip check passed in `.verification/clean/backend` |
 
@@ -64,7 +64,15 @@ For this frontend update, the 9 frontend tests, production build, lint/type/form
 
 Calculated text contrast: white on the green primary is 5.61:1, muted text on white is 5.04:1, and primary text on white is 14.01:1. These spot checks are not a complete accessibility audit.
 
-### Remaining release boundaries
+### Overview, directory and portrait refinement
+
+The overview now displays four real recent directory records and an account-distribution chart calculated from the summary API. Counts link to matching status filters. Recent users have independent loading, failure/retry and empty states; the main request indicator is explicitly labeled as a summary request. The directory now has larger portraits, clearer typography, aligned controls, a working refresh action and a mobile horizontal-scroll hint. Backend endpoints and database schema are unchanged.
+
+Verification for this update: 13 frontend tests passed, including portrait-failure fallback, recent-user retry independent of summary, correct account-share calculation and zero-user rendering. Seven Chromium scenarios passed, covering real portrait loading, metric-to-filter navigation, refresh, and intercepted portrait failure with usable initials and names. Existing search/filter/pagination/authentication/recovery/responsive checks continue to pass. Production build/type check, Oxlint and Prettier passed. Desktop/mobile overview and directory screenshots were visually inspected. The 20 backend tests above were not rerun because the backend was unchanged.
+
+The generated demo portrait asset is bundled as a single 183,460-byte WebP, down from the 2,384,612-byte generation output, without changing dimensions or composition. Sixteen fictional portraits are reused for 80 synthetic profiles; they are not real-user photographs. See [asset notes and exact generation prompt](ASSETS.md). No external portrait network service or chart dependency was introduced.
+
+### Outstanding environments
 
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.
