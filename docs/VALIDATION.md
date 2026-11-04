@@ -56,6 +56,16 @@ Verified against the user's running backend on port 8000: login using the locall
 
 ## Boundaries and follow-up
 
+### Green branding and login refinement
+
+The supplied `credisure.webp` is used unchanged in the shared brand lockup and favicon. The primary theme now uses green (`#087747`), with matching sidebar, focus, and surface accents. The login has a forest-green illustration panel, clearer form hierarchy, larger form controls, and a compact mobile header. Its decorative workspace preview is labeled and hidden from assistive technology.
+
+For this frontend update, the 9 frontend tests, production build, lint/type/format checks and all 6 Chromium browser scenarios passed. Browser checks additionally verified that the supplied logo loads, that login has no horizontal overflow at 320/375/768/1024/1440/1920 px, and that desktop login fits within a 936 px viewport height. Updated login desktop/mobile and overview screenshots were visually inspected. Backend code was unchanged, so the earlier 20-test backend result above is historical evidence for this refinement rather than a rerun.
+
+Calculated text contrast: white on the green primary is 5.61:1, muted text on white is 5.04:1, and primary text on white is 14.01:1. These spot checks are not a complete accessibility audit.
+
+### Remaining release boundaries
+
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.
 - The frontend token is intentionally memory-only; browser reload requires login. Expiry is 30 minutes by default and enforced by the server.

@@ -32,7 +32,7 @@ Confirmed technology choices: React with Vite for the frontend; Python with Fast
 - Navigation: Overview and Users are the only authenticated destinations. No decorative links to unfinished screens.
 - Delivery: locally runnable project and clear setup instructions. Public hosting is optional unless the assessor requires a live URL.
 - Session: short-lived bearer session held in browser memory. A browser reload requires signing in again; navigation within the app preserves the session. Persistent sign-in is outside the initial scope.
-- No provided brand assets, wireframes, deadline, external API, deployment target, or evaluation rubric. Use the working name “CrediSure Dashboard”; confirm any later instructions before adding scope.
+- The initial brief supplied no brand assets, wireframes, deadline, external API, deployment target, or evaluation rubric. The user subsequently supplied `credisure.webp` and requested a green primary theme; use the supplied logo unchanged and retain the name “CrediSure Dashboard”.
 
 ## 4. Goals and success criteria
 
@@ -108,7 +108,7 @@ Non-goals: lending workflows, credit scores, payments, analytics charts without 
 
 ## 7. Visual and accessibility direction
 
-Proposed direction: a restrained light interface, neutral page background, white surfaces, blue primary actions, readable system sans-serif typography, and consistent spacing. Use semantic design tokens rather than repeating raw styles. Keep navigation, page heading, summary information, and table controls clearly separated.
+Visual direction: a restrained light interface, neutral page background, white surfaces, green primary actions, readable system sans-serif typography, and consistent spacing. Use the user-supplied CrediSure logo in the login/navigation brand lockup and favicon. Use semantic design tokens rather than repeating raw styles. Keep navigation, page heading, summary information, and table controls clearly separated.
 
 Use semantic landmarks, headings, form labels, table headers, visible focus, logical tab order, and meaningful icon labels. Aim for WCAG 2.2 AA: normal text contrast at least 4.5:1, large text at least 3:1, and controls with sufficient non-text contrast. Prefer 44 px touch targets. Respect reduced-motion preferences. Treat accessibility as an implementation and verification target, not a certification claim.
 

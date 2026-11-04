@@ -61,10 +61,43 @@ test('invalid credentials, protected deep link and refresh behavior', async ({
 }) => {
   await page.goto('/users')
   await expect(page).toHaveURL(/login$/)
+  for (const width of [320, 375, 768, 1024, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 936 })
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true)
+    await expect(page.getByRole('button', { name: /^Sign in$/ })).toBeVisible()
+    if (width >= 1024) {
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollHeight <= innerHeight,
+        ),
+      ).toBe(true)
+    }
+  }
+  await expect(page.locator('.brand img')).toHaveAttribute(
+    'src',
+    '/credisure.webp',
+  )
+  await expect
+    .poll(() =>
+      page
+        .locator('.brand img')
+        .evaluate((image: HTMLImageElement) => image.naturalWidth),
+    )
+    .toBeGreaterThan(0)
   await page.screenshot({
     path: 'test-results/login-desktop.png',
     fullPage: true,
   })
+  await page.setViewportSize({ width: 375, height: 812 })
+  await page.screenshot({
+    path: 'test-results/login-mobile.png',
+    fullPage: true,
+  })
+  await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByLabel('Email address').fill(process.env.E2E_ADMIN_EMAIL!)
   await page.getByLabel('Password', { exact: true }).fill('incorrect')
   await page.getByRole('button', { name: /^Sign in$/ }).click()
