@@ -10,7 +10,7 @@ All six assessment features are implemented: login, overview, user table, search
 
 | Check | Result |
 | --- | --- |
-| Backend pytest suite | 22 passed after the distinct-name update |
+| Backend pytest suite | 24 passed after the explicit administrator reset update |
 | Backend Ruff lint | Passed |
 | Backend Ruff format check | Passed |
 | Backend pip dependency check | Passed |
@@ -80,7 +80,13 @@ The explicit seed command updates an existing row only when its ID, full name an
 
 Executed verification: 22 backend tests passed, including uniqueness and guarded legacy-upgrade coverage; seven browser scenarios passed with updated search results and profile names. Backend Ruff lint/format checks and frontend TypeScript, Oxlint and Prettier checks passed. Frontend component tests were not rerun for this data-only change; their earlier 13-test result remains historical evidence.
 
-### Outstanding environments
+### Explicit administrator credential reset
+
+Diagnosed a configured administrator email differing from the stored database email. Login correctly uses the database; configuration changes and normal seeding intentionally preserve the stored account. Added the local `python -m app.reset_admin` command to apply configured credentials to exactly one existing administrator, retain its ID, revoke its sessions and preserve all directory data atomically. Shared seed/reset validation enforces configured credentials and a minimum 12-character password. No credentials were added to source files or examples.
+
+Executed verification: 24 backend tests passed, including reset login success, old credential/session rejection, stable administrator ID, preserved directory records, invalid-password rejection and missing-account refusal. Ruff lint/format checks passed. Applied the local configured credentials and verified sign-in, protected access to all 80 users, and logout through the running backend on port 8000. Frontend code and dependencies were unchanged; prior frontend test/build results were not rerun.
+
+### Release limitations
 
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.

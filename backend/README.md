@@ -33,7 +33,13 @@ Process variables override `backend/.env`.
 | `CREDISURE_ADMIN_EMAIL` | Required for seed, not runtime authentication |
 | `CREDISURE_ADMIN_PASSWORD` | Required for seed; hashed with Argon2id |
 
-Changing seed credentials in `.env` does not reset a password already in the database. There is no password-reset feature in this assessment.
+Login verifies the stored database account. Changing credentials in `.env` does not replace an existing account automatically. After editing the configured email/password, explicitly apply them from this directory:
+
+```powershell
+.\.venv\Scripts\python.exe -m app.reset_admin
+```
+
+This local maintenance command requires exactly one existing administrator. It updates that account's email and password hash, keeps its ID and all directory data, and revokes its old sessions in one transaction. It requires a password of at least 12 characters and never prints the password or hash. Normal seeding continues to preserve existing credentials. No public password-reset endpoint is provided.
 
 ## Endpoints
 

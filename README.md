@@ -37,6 +37,8 @@ Copy environment examples only on first setup; preserve existing `.env` files. S
 
 For this workspace, local credentials have already been generated in the ignored `backend/.env` file and 80 synthetic users seeded. Read that file locally to obtain your sign-in credentials. They are never bundled into the frontend. Re-running seed preserves existing credentials and does not duplicate users; changing `.env` after seeding does not reset the stored password.
 
+If you change the administrator email/password in `.env`, apply them explicitly from `backend/` with `.\.venv\Scripts\python.exe -m app.reset_admin`. This replaces the single administrator's credentials, preserves directory data, and revokes existing sessions. See [backend setup](backend/README.md).
+
 ### Frontend
 
 ```powershell
