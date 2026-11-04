@@ -5,11 +5,13 @@ export function RequestStatus({
   error,
   updatedAt,
   updating = false,
+  caption = 'API request',
 }: {
   loading: boolean
   error?: string
   updatedAt?: Date
   updating?: boolean
+  caption?: string
 }) {
   const label = updating
     ? 'Updating'
@@ -26,7 +28,7 @@ export function RequestStatus({
       role="status"
       aria-live="polite"
     >
-      <span className="status-caption">API request</span>
+      <span className="status-caption">{caption}</span>
       {loading || updating ? (
         <LoaderCircle size={14} className="spin" aria-hidden="true" />
       ) : error ? (

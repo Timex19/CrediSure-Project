@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowRight,
   ArrowUpRight,
   Users,
@@ -11,15 +11,17 @@ import { Link } from 'react-router'
 import type { Summary } from '../../lib/api'
 import { useResource } from '../../lib/useResource'
 import { ErrorState, RequestStatus } from '../../components/Feedback'
+import { RecentUsers } from './RecentUsers'
 import styles from './Overview.module.css'
 
 const metrics = [
   {
     key: 'total_users',
     label: 'Total users',
-    hint: 'Everyone in your directory',
+    hint: 'Your entire workspace',
     icon: Users,
     color: 'accent',
+    status: '',
   },
   {
     key: 'active_users',
@@ -27,6 +29,7 @@ const metrics = [
     hint: 'Currently active accounts',
     icon: UserCheck,
     color: 'green',
+    status: 'active',
   },
   {
     key: 'inactive_users',
@@ -34,6 +37,7 @@ const metrics = [
     hint: 'Currently inactive accounts',
     icon: UserMinus,
     color: 'gray',
+    status: 'inactive',
   },
   {
     key: 'pending_users',
@@ -41,12 +45,16 @@ const metrics = [
     hint: 'Awaiting activation',
     icon: Clock3,
     color: 'amber',
+    status: 'pending',
   },
 ] as const
 
 export function Overview() {
   const resource = useResource<Summary>('/dashboard/summary')
   const { data, error, loading } = resource
+  const total = data?.total_users || 0
+  const activeShare = total && data ? (data.active_users / total) * 100 : 0
+  const inactiveShare = total && data ? (data.inactive_users / total) * 100 : 0
   return (
     <>
       <div className="page-heading">
@@ -55,18 +63,19 @@ export function Overview() {
           <h1 id="page-title" tabIndex={-1}>
             A little clarity for your day.
           </h1>
-          <p>Here’s a snapshot of the people in your workspace.</p>
+          <p>Your people, your workspace. Everything in perspective.</p>
         </div>
         <Link className="button primary" to="/users">
+          <Users size={16} aria-hidden="true" />
           View users
           <ArrowRight size={16} aria-hidden="true" />
         </Link>
       </div>
       <div className="section-bar">
         <h2>
-          At a glance <span className="subtle-label">All users</span>
+          At a glance <span className="subtle-label">Full directory</span>
         </h2>
-        <RequestStatus {...resource} />
+        <RequestStatus {...resource} caption="Summary request" />
       </div>
       {error ? (
         <section className="panel">
@@ -78,14 +87,24 @@ export function Overview() {
           aria-busy={loading}
           aria-label="User summary"
         >
-          {metrics.map(({ key, label, hint, icon: Icon, color }) => (
-            <article className={styles.card} key={key}>
+          {metrics.map(({ key, label, hint, icon: Icon, color, status }) => (
+            <article
+              className={`${styles.card} ${key === 'total_users' ? styles.featured : ''}`}
+              key={key}
+            >
               <div className={styles.cardTop}>
                 <span className={`metric-icon ${color}`}>
                   <Icon size={20} aria-hidden="true" />
                 </span>
-                <span className={styles.metricLabel}>{label}</span>
+                <Link
+                  to={status ? `/users?status=${status}` : '/users'}
+                  aria-label={`View ${label.toLowerCase()}`}
+                  className={styles.cardLink}
+                >
+                  <ArrowUpRight size={18} aria-hidden="true" />
+                </Link>
               </div>
+              <h2 className={styles.metricLabel}>{label}</h2>
               {loading ? (
                 <span
                   className={`skeleton ${styles.valueSkeleton}`}
@@ -102,85 +121,76 @@ export function Overview() {
         </div>
       )}
       <div className={styles.lower}>
-        <section className={`panel ${styles.directory}`}>
-          <div className={styles.directoryHeading}>
-            <span className="metric-icon accent">
-              <Users size={22} aria-hidden="true" />
+        <RecentUsers />
+        <section
+          className={`panel ${styles.distribution}`}
+          aria-labelledby="distribution-title"
+        >
+          <div className={styles.panelHeading}>
+            <div>
+              <h2 id="distribution-title">Account distribution</h2>
+              <p>A clearer picture of your workspace.</p>
+            </div>
+            <span className={styles.smallIcon}>
+              <ShieldCheck size={19} aria-hidden="true" />
             </span>
-            <span className="subtle-label">USER DIRECTORY</span>
           </div>
-          <h2>
-            The right people.
-            <br />
-            All in one place.
-          </h2>
-          <p>
-            Find a familiar name, check an account status, or get a clear view
-            of your entire directory.
-          </p>
-          <Link className="button secondary" to="/users">
-            Explore directory
-            <ArrowUpRight size={17} aria-hidden="true" />
-          </Link>
-          <div className={styles.directoryArt} aria-hidden="true">
-            <div>
-              <span>AO</span>
-              <i />
-              <b className="badge active">Active</b>
+          {loading ? (
+            <div
+              className={styles.distributionLoading}
+              aria-label="Loading account distribution"
+            >
+              <span className={`skeleton ${styles.chartSkeleton}`} />
             </div>
-            <div>
-              <span>DB</span>
-              <i />
-              <b className="badge pending">Pending</b>
-            </div>
-            <div>
-              <span>CE</span>
-              <i />
-              <b className="badge active">Active</b>
-            </div>
-          </div>
-        </section>
-        <section className={`panel ${styles.statusGuide}`}>
-          <p className="eyebrow">UNDERSTANDING YOUR DATA</p>
-          <h2>A status for every stage.</h2>
-          <p>Account statuses help you understand who’s in your workspace.</p>
-          <dl>
-            {[
-              {
-                status: 'active',
-                title: 'Active',
-                description: 'Accounts marked as currently active.',
-              },
-              {
-                status: 'inactive',
-                title: 'Inactive',
-                description: 'Accounts marked as currently inactive.',
-              },
-              {
-                status: 'pending',
-                title: 'Pending',
-                description: 'Accounts awaiting activation.',
-              },
-            ].map((item) => (
-              <div key={item.status}>
-                <dt>
-                  <span className={`status-dot ${item.status}`} />
-                  {item.title}
-                </dt>
-                <dd>{item.description}</dd>
+          ) : error ? (
+            <p className={styles.unavailable}>
+              Account distribution will appear when the summary is available.
+            </p>
+          ) : (
+            <>
+              <div className={styles.chartWrap}>
+                <div
+                  className={styles.donut}
+                  style={{
+                    background: total
+                      ? `conic-gradient(var(--primary) 0% ${activeShare}%, var(--chart-inactive) ${activeShare}% ${activeShare + inactiveShare}%, var(--chart-pending) ${activeShare + inactiveShare}% 100%)`
+                      : 'var(--border)',
+                  }}
+                  role="img"
+                  aria-label={
+                    total
+                      ? `${data?.active_users} active, ${data?.inactive_users} inactive, ${data?.pending_users} pending users`
+                      : 'No users in the directory'
+                  }
+                >
+                  <div>
+                    <span>{total ? `${Math.round(activeShare)}%` : '0'}</span>
+                    <small>{total ? 'active accounts' : 'users yet'}</small>
+                  </div>
+                </div>
               </div>
-            ))}
-          </dl>
-          <div className={styles.note}>
-            <ShieldCheck size={17} aria-hidden="true" />
-            <span>Overview counts always reflect the full directory.</span>
-          </div>
+              <div className={styles.legend}>
+                {metrics.slice(1).map((metric) => (
+                  <Link key={metric.key} to={`/users?status=${metric.status}`}>
+                    <span className={`status-dot ${metric.status}`} />
+                    <span>{metric.label.replace(' users', '')}</span>
+                    <b>{data?.[metric.key]}</b>
+                    <ArrowUpRight size={13} aria-hidden="true" />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       </div>
-      <p className={styles.footnote}>
-        A focused view of your workspace. Directory data is synthetic and
-        read-only.
-      </p>
+      <div className={styles.contextNote}>
+        <ShieldCheck size={16} aria-hidden="true" />
+        <p>
+          One directory, one source of truth. Summary counts always reflect all
+          users.
+        </p>
+        <span>Synthetic assessment data</span>
+      </div>
     </>
   )
 }

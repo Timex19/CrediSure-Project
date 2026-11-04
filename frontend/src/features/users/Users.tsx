@@ -6,11 +6,14 @@ import {
   ChevronRight,
   SlidersHorizontal,
   X,
+  RefreshCw,
+  ShieldCheck,
 } from 'lucide-react'
 import { useSearchParams } from 'react-router'
 import type { UserPage } from '../../lib/api'
 import { useResource } from '../../lib/useResource'
 import { ErrorState, RequestStatus } from '../../components/Feedback'
+import { UserAvatar } from '../../components/UserAvatar'
 import { readQuery } from './query'
 import styles from './Users.module.css'
 
@@ -74,19 +77,29 @@ export function Users() {
           </h1>
           <p>A clear view of everyone in your workspace.</p>
         </div>
-        <span className={styles.readonly}>
-          <span className="status-dot active" />
-          Read-only directory
-        </span>
+        <div className={styles.headingActions}>
+          <span className={styles.readonly}>
+            <ShieldCheck size={14} aria-hidden="true" />
+            Read-only directory
+          </span>
+          <button
+            className="button secondary"
+            onClick={resource.retry}
+            disabled={loading}
+          >
+            <RefreshCw size={15} aria-hidden="true" />
+            Refresh users
+          </button>
+        </div>
       </div>
       <section className="panel" aria-label="User directory">
         <div className={styles.tableHeading}>
           <div>
             <h2>
-              All users
+              People in your workspace
               {data && <span className={styles.count}>{data.total}</span>}
             </h2>
-            <p>Search your directory and explore account statuses.</p>
+            <p>Find a person, check a status, stay in the know.</p>
           </div>
           <RequestStatus {...resource} updating={updating} />
         </div>
@@ -134,6 +147,9 @@ export function Users() {
             </button>
           )}
         </div>
+        <p className={styles.scrollHint}>
+          Swipe the table to see all account details.
+        </p>
         {error ? (
           <ErrorState message={error} retry={resource.retry} />
         ) : !loading && data?.items.length === 0 ? (
@@ -191,13 +207,7 @@ export function Users() {
                       <tr key={user.id}>
                         <td>
                           <div className={styles.name}>
-                            <span className={`avatar ${styles.userAvatar}`}>
-                              {user.full_name
-                                .split(' ')
-                                .map((word) => word[0])
-                                .slice(0, 2)
-                                .join('')}
-                            </span>
+                            <UserAvatar id={user.id} name={user.full_name} />
                             <strong>{user.full_name}</strong>
                           </div>
                         </td>
@@ -287,8 +297,7 @@ export function Users() {
         </div>
       </section>
       <p className={styles.tableNote}>
-        Showing synthetic assessment data. Dates are displayed as day, month,
-        year.
+        Synthetic assessment profiles. Dates are displayed as day, month, year.
       </p>
     </>
   )

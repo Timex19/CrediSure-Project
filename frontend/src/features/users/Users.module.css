@@ -1,16 +1,21 @@
+﻿.headingActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .readonly {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   color: var(--muted);
   font-size: 11px;
-  padding: 9px 13px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 6px;
+}
+.readonly svg {
+  color: var(--primary);
 }
 .tableHeading {
-  padding: 25px 26px;
+  padding: 27px 28px 23px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20,23 +25,27 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
 }
 .count {
   font-weight: 500;
-  font-size: 10px;
-  border-radius: 5px;
+  font-size: 11px;
+  border: 1px solid var(--primary-border);
+  border-radius: 6px;
   background: var(--primary-soft);
   color: var(--primary);
-  padding: 3px 7px;
+  padding: 3px 8px;
+  letter-spacing: 0;
 }
 .tableHeading p {
-  margin-top: 6px;
+  margin-top: 7px;
   color: var(--muted);
   font-size: 12px;
 }
 .toolbar {
-  padding: 0 26px 22px;
+  padding: 0 28px 24px;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -44,30 +53,32 @@
 }
 .search {
   position: relative;
-  max-width: 340px;
+  max-width: 430px;
   min-width: 150px;
   flex: 1;
 }
 .search svg {
   position: absolute;
-  left: 13px;
+  left: 14px;
   top: 15px;
   color: var(--muted);
 }
 .search input {
-  padding-left: 40px;
-  font-size: 12px;
+  padding-left: 42px;
+  font-size: 13px;
+  background: #fcfdfc;
 }
 .filter {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 12px;
+  gap: 9px;
+  padding-left: 14px;
   border: 1px solid var(--input-border);
   border-radius: 7px;
   min-height: 48px;
   font-size: 12px;
   background: white;
+  margin-left: auto;
 }
 .filter svg {
   color: var(--muted);
@@ -82,14 +93,19 @@
   background: transparent;
   padding-left: 0;
   font-size: 12px;
+  padding-right: 12px;
 }
 .clear {
   font-size: 11px !important;
-  margin-left: auto;
+}
+.scrollHint {
+  display: none;
 }
 .tableScroll {
   overflow-x: auto;
   border-top: 1px solid var(--border);
+  scrollbar-width: thin;
+  scrollbar-color: #bdd3c6 transparent;
 }
 .tableScroll table {
   border-collapse: collapse;
@@ -100,47 +116,52 @@
 .tableScroll th {
   font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
   color: var(--muted);
-  padding: 15px 22px;
-  background: #f9fbfa;
+  padding: 15px 26px;
+  background: #f6f9f7;
   border-bottom: 1px solid var(--border);
 }
 .tableScroll td {
-  padding: 15px 22px;
+  padding: 13px 26px;
   border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  font-size: 13px;
   height: 73px;
+}
+.tableScroll th:first-child,
+.tableScroll td:first-child {
+  min-width: 235px;
 }
 .tableScroll tbody tr:last-child td {
   border-bottom: 0;
 }
 .tableScroll tbody tr:hover {
-  background: #f6faf7;
+  background: #f7fbf8;
 }
 .name {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 13px;
 }
 .name strong {
-  font-weight: 500;
+  font-weight: 550;
 }
-.userAvatar {
-  width: 33px !important;
-  height: 33px !important;
-  font-size: 10px !important;
+.email {
+  color: var(--muted);
+  font-size: 12px !important;
 }
-.email,
 .date {
   color: var(--muted);
+  font-size: 12px !important;
 }
 .adminRole,
 .memberRole {
-  font-size: 10px;
+  display: inline-flex;
+  font-size: 11px;
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 4px 7px;
+  border-radius: 5px;
+  padding: 4px 8px;
 }
 .adminRole {
   color: #5e43a4;
@@ -149,10 +170,16 @@
 }
 .memberRole {
   color: var(--muted);
-  background: #f9fafb;
+  background: #f8faf9;
+}
+.tableScroll :global(.badge) {
+  font-size: 11px;
+  border-radius: 20px;
+  padding: 5px 10px;
+  gap: 7px;
 }
 .pagination {
-  padding: 18px 24px;
+  padding: 19px 26px;
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
@@ -161,18 +188,18 @@
   font-size: 11px;
   color: var(--muted);
   flex-wrap: wrap;
+  background: #fdfefd;
+  border-radius: 0 0 10px 10px;
 }
-.pageControls {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+.pageControls,
 .pageSize,
 .pageNavigation {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.pageControls {
+  flex-wrap: wrap;
 }
 .pageControls label {
   font-size: 11px;
@@ -183,7 +210,7 @@
   font-size: 12px;
   padding: 6px 8px;
 }
-.pageControls > span {
+.pageNavigation > span {
   margin: 0 6px;
 }
 .cellSkeleton {
@@ -195,31 +222,57 @@
   color: var(--muted);
   font-size: 11px;
   margin-top: 18px;
+  line-height: 1.8;
 }
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .tableHeading {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
-    gap: 14px;
+    gap: 16px;
+  }
+}
+@media (max-width: 700px) {
+  .tableHeading {
+    padding: 22px 20px 20px;
+  }
+  .tableHeading h2 {
+    font-size: 16px;
   }
   .toolbar {
-    padding: 0 20px 20px;
+    padding: 0 20px 18px;
+    gap: 10px;
   }
   .search {
     max-width: none;
     flex-basis: 100%;
   }
-  .clear {
+  .filter {
     margin-left: 0;
+  }
+  .clear {
+    margin-left: auto;
+  }
+  .scrollHint {
+    display: block;
+    padding: 0 20px 15px;
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .tableScroll th,
+  .tableScroll td {
+    padding-left: 20px;
+    padding-right: 20px;
   }
   .pagination {
     padding: 16px 20px;
   }
   .pageControls {
-    gap: 6px;
+    gap: 12px;
   }
-  .pageControls > span {
+  .pageNavigation > span {
     margin: 0;
+  }
+  .headingActions {
+    gap: 14px;
   }
 }

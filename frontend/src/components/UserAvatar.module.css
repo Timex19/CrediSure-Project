@@ -1,0 +1,25 @@
+.avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 0 0 1px #173d2310;
+}
+.avatar img {
+  position: absolute;
+  display: block;
+  width: 400%;
+  height: 400%;
+  max-width: none;
+  left: calc(var(--portrait-x) * -100%);
+  top: calc(var(--portrait-y) * -100%);
+}
+.avatar img[hidden] {
+  display: none;
+}
