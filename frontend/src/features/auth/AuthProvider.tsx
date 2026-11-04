@@ -18,12 +18,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!session) return
-    const timer = setTimeout(() => expire(session.access_token), Math.max(0, Date.parse(session.expires_at) - Date.now()))
+    const timer = setTimeout(
+      () => expire(session.access_token),
+      Math.max(0, Date.parse(session.expires_at) - Date.now()),
+    )
     return () => clearTimeout(timer)
   }, [session, expire])
 
-  const signIn = async (email: string, password: string, signal: AbortSignal) => {
-    const next = await api<Session>('/auth/login', { method: 'POST', body: { email, password }, signal })
+  const signIn = async (
+    email: string,
+    password: string,
+    signal: AbortSignal,
+  ) => {
+    const next = await api<Session>('/auth/login', {
+      method: 'POST',
+      body: { email, password },
+      signal,
+    })
     if (signal.aborted) return
     current.current = next
     setNotice('')
@@ -37,13 +48,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNotice('You have signed out.')
     if (!previous) return
     try {
-      await api('/auth/logout', { method: 'POST', token: previous.access_token })
+      await api('/auth/logout', {
+        method: 'POST',
+        token: previous.access_token,
+      })
     } catch (error) {
-      if (!current.current && !(error instanceof ApiError && error.status === 401)) {
-        setNotice('You have signed out locally. Server session revocation could not be confirmed; it will expire automatically.')
+      if (
+        !current.current &&
+        !(error instanceof ApiError && error.status === 401)
+      ) {
+        setNotice(
+          'You have signed out locally. Server session revocation could not be confirmed; it will expire automatically.',
+        )
       }
     }
   }
 
-  return <AuthContext.Provider value={{ session, notice, signIn, signOut, expire }}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={{ session, notice, signIn, signOut, expire }}>
+      {children}
+    </AuthContext.Provider>
+  )
 }

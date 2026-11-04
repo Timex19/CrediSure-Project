@@ -7,9 +7,11 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: {
-      proxy: env.BACKEND_PROXY_TARGET ? {
-        '/api': { target: env.BACKEND_PROXY_TARGET, changeOrigin: true },
-      } : undefined,
+      proxy: env.BACKEND_PROXY_TARGET
+        ? {
+            '/api': { target: env.BACKEND_PROXY_TARGET, changeOrigin: true },
+          }
+        : undefined,
     },
   }
 })
