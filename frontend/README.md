@@ -1,30 +1,47 @@
 ﻿# CrediSure Frontend
 
-React + TypeScript, scaffolded with the official Vite react-ts template. Includes React Strict Mode, hot module replacement, TypeScript configuration and Oxlint. Dependency versions are recorded in package-lock.json.
+React/TypeScript with Vite, React Router, CSS Modules, Lucide icons and Oxlint. Use Node.js 22.12+ on the Node 22 release line or a newer supported LTS release.
 
 ## Setup
 
-Use Node.js 22.12+ on the Node 22 release line or a newer supported LTS release. Run from this directory:
-
 ```powershell
 npm ci
+Copy-Item .env.example .env
 npm run dev
 ```
 
-Vite prints the local development address. No environment configuration is required yet.
+Preserve existing environment configuration. The frontend requires the initialized backend for login and data. See the [root setup guide](../README.md).
 
-## Commands
+| Variable                  | Purpose                                                         |
+| ------------------------- | --------------------------------------------------------------- |
+| `VITE_API_BASE_URL`       | Public API base; defaults to `/api`                             |
+| `VITE_REQUEST_TIMEOUT_MS` | Request timeout; defaults to 10000 ms                           |
+| `BACKEND_PROXY_TARGET`    | Vite development proxy destination; not exposed to browser code |
 
-| Command | Purpose |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run typecheck` | Check TypeScript without emitting build output |
-| `npm run lint` | Run Oxlint |
-| `npm run build` | Check TypeScript and build into dist/ |
-| `npm run preview` | Serve the production build locally after building |
+Production requires an API reverse proxy for `/api`, or an explicit `VITE_API_BASE_URL` with permitted backend CORS origins. The Vite development proxy is not part of the production build. Never place server credentials in `VITE_*` variables.
 
-## Scope
+## Behavior
 
-The default Vite starter screen is retained. Login, dashboard, directory, routing, API integration and automated feature tests will be added in later implementation steps. No backend is currently required.
+Login uses backend credential verification; tokens stay in memory. Refreshing signs out. Overview counts cover the full directory. User search/filter/page settings live in query parameters. Search is debounced 300 ms; status and page changes apply immediately. Superseded requests are canceled and their results ignored. All table updates hide previous results until the current response succeeds. Dates use UTC date-only parsing and the en-GB day/month/year display format.
 
-See the [PRD](../docs/PRD.md) and [implementation plan](../docs/IMPLEMENTATION_PLAN.md) for intended scope. Tooling reference: [Vite getting started](https://vite.dev/guide/).
+## Checks
+
+```powershell
+npm run typecheck
+npm run lint
+npm run format:check
+npm test
+npm run build
+```
+
+`npm run preview` previews the build; it requires a separately configured API origin or reverse proxy for data access.
+
+For isolated browser integration checks:
+
+```powershell
+$env:PLAYWRIGHT_BROWSERS_PATH = Join-Path (Split-Path $PWD -Parent) '.playwright-browsers'
+npx playwright install chromium
+npm run test:e2e
+```
+
+Tests start a separate backend/frontend on configurable ports (defaults 8200/5274), generate credentials, and seed an isolated SQLite database. Artifacts live under ignored `test-results/`. Scenarios distinguish real API flows from simulated failure/unauthorized responses.

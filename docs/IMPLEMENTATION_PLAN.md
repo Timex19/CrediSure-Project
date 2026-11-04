@@ -1,14 +1,14 @@
 # CrediSure Assessment — Implementation Plan
 
-Version: 0.1 | Date: 4 November 2026 | Status: Proposed; implementation not started
+Version: 0.1 | Date: 4 November 2026 | Status: Implementation authorized and in progress; evidence tracked in VALIDATION.md
 
 Companion specification: [PRD](PRD.md). Requirement IDs refer to that document.
 
 ## 1. Current state and implementation boundary
 
-The inspected workspace `C:\CrediSure-Assessment` contains no application files and is not initialized as a Git repository. Only planning documents are being added at this stage. No dependencies, application scaffold, database, or runtime have been created.
+At planning time, the workspace contained no application files and was not a Git repository. The user subsequently authorized both scaffolds and implementation. React/Vite and FastAPI now exist under `frontend/` and `backend/`; current verification evidence is recorded separately in `VALIDATION.md`.
 
-Review the PRD and this plan before starting Phase 1. The user explicitly requested planning before implementation. Unspecified assessment details remain proposed decisions rather than assessor mandates.
+The PRD and this plan preceded implementation as requested. Unspecified assessment details remain proposed decisions rather than assessor mandates. The current Vite template's Oxlint is retained in place of the originally proposed ESLint. The installed Starlette TestClient uses HTTPX2, superseding the older HTTPX test dependency proposed below.
 
 ## 2. Proposed architecture
 
