@@ -82,6 +82,11 @@ test('real API: login, overview, directory filters, pages, history and logout', 
   await page.goBack()
   await expect(page).toHaveURL(/login$/)
   await expect(page.getByRole('table')).not.toBeVisible()
+  await page.reload()
+  await expect(page).toHaveURL(/login$/)
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('credisure.session.v1')),
+  ).toBeNull()
 })
 
 test('invalid credentials, protected deep link and refresh behavior', async ({
@@ -133,8 +138,44 @@ test('invalid credentials, protected deep link and refresh behavior', async ({
     'Email or password is incorrect.',
   )
   await signIn(page)
+  let repeatLogins = 0
+  page.on('request', (request) => {
+    if (request.url().endsWith('/api/auth/login')) repeatLogins += 1
+  })
+  const originalExpiry = await page.evaluate(
+    () =>
+      JSON.parse(sessionStorage.getItem('credisure.session.v1')!).expires_at,
+  )
+  await page.reload()
+  await expect(page).toHaveURL(/overview$/)
+  await expect(page.getByRole('status')).toContainText('Updated')
+  await page.getByRole('link', { name: 'View users', exact: true }).click()
+  await page.getByLabel('Status', { exact: true }).selectOption('active')
+  await expect(page.getByText('Showing 1–10 of 48 users')).toBeVisible()
+  await page.getByRole('button', { name: 'Next page' }).click()
+  await expect(page.getByText('Showing 11–20 of 48 users')).toBeVisible()
+  const directoryUrl = page.url()
+  await page.reload()
+  await expect(page).toHaveURL(directoryUrl)
+  await expect(page.getByLabel('Status', { exact: true })).toHaveValue('active')
+  await expect(page.getByText('Showing 11–20 of 48 users')).toBeVisible()
+  expect(
+    await page.evaluate(
+      () =>
+        JSON.parse(sessionStorage.getItem('credisure.session.v1')!).expires_at,
+    ),
+  ).toBe(originalExpiry)
+  expect(repeatLogins).toBe(0)
+  await page.evaluate(() => {
+    const value = JSON.parse(sessionStorage.getItem('credisure.session.v1')!)
+    value.expires_at = new Date(Date.now() - 1000).toISOString()
+    sessionStorage.setItem('credisure.session.v1', JSON.stringify(value))
+  })
   await page.reload()
   await expect(page).toHaveURL(/login$/)
+  await expect(page.getByRole('status')).toContainText(
+    'Your saved session has ended',
+  )
 })
 
 test('responsive layout, keyboard drawer, local table scrolling and reduced motion', async ({
@@ -335,4 +376,61 @@ test('simulated portrait failure keeps initials and directory names usable', asy
   await expect(
     page.locator('tbody tr').first().getByText('Umar Suleiman'),
   ).toBeVisible()
+})
+
+test('server-revoked sessions cannot restore the admin panel after reload', async ({
+  page,
+}) => {
+  await signIn(page)
+  const token = await page.evaluate(
+    () =>
+      JSON.parse(sessionStorage.getItem('credisure.session.v1')!).access_token,
+  )
+  const logout = await page.request.post('/api/auth/logout', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  expect(logout.status()).toBe(204)
+  await page.reload()
+  await expect(page).toHaveURL(/login$/)
+  await expect(page.getByRole('status')).toContainText('Your session has ended')
+  expect(
+    await page.evaluate(() => sessionStorage.getItem('credisure.session.v1')),
+  ).toBeNull()
+  await expect(
+    page.getByRole('heading', { name: 'A little clarity for your day.' }),
+  ).not.toBeVisible()
+})
+
+test('temporary restoration failure preserves the route and supports retry', async ({
+  page,
+}) => {
+  await signIn(page)
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      status: 503,
+      json: {
+        error: {
+          code: 'unavailable',
+          message: 'Temporary validation failure.',
+        },
+      },
+    }),
+  )
+  await page.reload()
+  await expect(
+    page.getByRole('heading', { name: 'We couldn’t restore your session' }),
+  ).toBeVisible()
+  await expect(page.getByRole('alert')).toHaveText(
+    'Temporary validation failure.',
+  )
+  await expect(page).toHaveURL(/overview$/)
+  await expect(
+    page.getByRole('heading', { name: 'A little clarity for your day.' }),
+  ).not.toBeVisible()
+  await page.unroute('**/api/auth/me')
+  await page.getByRole('button', { name: 'Retry', exact: true }).click()
+  await expect(
+    page.getByRole('heading', { name: 'A little clarity for your day.' }),
+  ).toBeVisible()
+  await expect(page.getByRole('status')).toContainText('Updated')
 })

@@ -423,6 +423,20 @@ label {
 .skip-link:focus {
   top: 10px;
 }
+.session-recovery {
+  min-height: 100svh;
+  justify-content: center;
+}
+.session-recovery h1 {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+.session-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
 @keyframes shimmer {
   to {
     background-position: -200% 0;

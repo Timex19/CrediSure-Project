@@ -76,6 +76,7 @@ function Navigation({ close }: { close?: () => void }) {
 }
 
 export function Shell() {
+  const { notice } = useAuth()
   const location = useLocation()
   const title =
     location.pathname === '/users'
@@ -168,6 +169,11 @@ export function Shell() {
           </div>
         </header>
         <main id="main" className={styles.main}>
+          {notice && (
+            <p className="notice" role="status">
+              {notice}
+            </p>
+          )}
           <Outlet />
         </main>
         <footer className={styles.footer}>
