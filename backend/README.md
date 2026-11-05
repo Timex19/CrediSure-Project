@@ -30,6 +30,12 @@ Process variables override `backend/.env`.
 | `CREDISURE_ALLOWED_ORIGINS` | JSON list of explicit HTTP(S) origins; empty list by default |
 | `CREDISURE_DATABASE_PATH` | `backend/data/credisure.sqlite3`; relative paths resolve against backend/ |
 | `CREDISURE_SESSION_MINUTES` | 30; permitted range 1–1440 |
+| `CREDISURE_LOGIN_ATTEMPTS_PER_IP` | 10 admitted login requests per window; range 1–100 |
+| `CREDISURE_LOGIN_ATTEMPTS_TOTAL` | 100 admitted login requests across all IPs per window; range 1–1000 |
+| `CREDISURE_LOGIN_WINDOW_SECONDS` | Sliding window of 60 seconds; range 1–3600 |
+| `CREDISURE_LOGIN_CONCURRENCY` | 2 in-flight login requests, including body reads and password checks; range 1–8 |
+| `CREDISURE_LOGIN_BODY_BYTES` | 8192 actual body bytes, including streamed requests; range 1024–65536 |
+| `CREDISURE_LOGIN_BODY_TIMEOUT_SECONDS` | 5 seconds to receive a complete login body; range 1–30 |
 | `CREDISURE_ADMIN_EMAIL` | Required for seed, not runtime authentication |
 | `CREDISURE_ADMIN_PASSWORD` | Required for seed; hashed with Argon2id |
 
@@ -54,7 +60,19 @@ This local maintenance command requires exactly one existing administrator. It u
 
 API docs: `http://127.0.0.1:8000/docs`. Directory parameters: `search` (max 100), `status` (active/inactive/pending), `page` (1–1,000,000), `page_size` (10/25/50). Name/email search is case-insensitive for the synthetic ASCII dataset and treats LIKE metacharacters literally. Rows sort by joined date descending then ID ascending. Error responses use `{error: {code, message, field_errors?}}` without echoed request bodies. API responses use `Cache-Control: no-store`.
 
-Sessions use cryptographically random tokens, store only SHA-256 token hashes, expire server-side and are deleted on logout. Passwords and bearer tokens must never be logged. Login has a per-process client-IP throttle; multi-worker public hosting needs a shared limiter.
+Sessions use cryptographically random tokens, store only SHA-256 token hashes, expire server-side and are deleted on logout. Passwords and bearer tokens must never be logged.
+
+## Login abuse protection
+
+Login admission runs before JSON parsing or database/password work. Defaults allow 10 requests per client IP and 100 total requests in a sliding 60-second window. Successful, invalid and malformed requests all count; changing an email address does not reset the source limit. The global cap bounds limiter memory and reduces IP-rotation abuse within one process. At most two admitted logins can read bodies or perform expensive password work at once. Excess requests receive a generic `429` with `Retry-After` and a retry message displayed by the existing login form. Retries do not extend an existing throttle window. There is no persistent account lockout that an unauthenticated attacker can trigger.
+
+Login accepts uncompressed `application/json` only (`415` otherwise). Actual streamed bodies are limited to 8 KiB (`413`), independent of a claimed `Content-Length`. Body reads time out after five seconds (`408`). Capacity is released on disconnect, timeout or downstream error. Rejections retain allowed-origin CORS headers and `Cache-Control: no-store`; API responses also use `X-Content-Type-Options: nosniff` and `Referrer-Policy: no-referrer`.
+
+These controls are process-local and reset on restart. Multiple workers/instances require an atomic shared limiter at the ingress or in a shared datastore. The global cap can temporarily delay legitimate logins during an attack; already authenticated requests are outside these login limits. Shared networks can hit the same IP limit. They do not prevent volumetric denial of service or replace MFA for an internet-facing administrator portal.
+
+The application uses the ASGI client address and never parses `X-Forwarded-For` itself. Uvicorn may rewrite that address for proxies it trusts. For public hosting, configure trusted proxy IPs explicitly, prevent direct access around the ingress, and never trust forwarded headers from arbitrary clients. The local Vite proxy can group users under its own address. Enforce HTTPS, connection/body/header limits and timeouts at the ingress; configure CSP/frame protection on the host serving the frontend HTML. No public infrastructure was configured by this change.
+
+Design reference: [OWASP authentication guidance](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html), including throttling, generic errors and the denial-of-service tradeoff of account lockouts.
 
 ## Checks
 

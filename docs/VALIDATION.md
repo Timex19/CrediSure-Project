@@ -1,6 +1,6 @@
 # Implementation and verification evidence
 
-Date: 4 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. This records executed checks; it does not claim public deployment or physical-device acceptance.
+Updated: 5 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. This records executed checks; it does not claim public deployment or physical-device acceptance.
 
 ## Delivered scope
 
@@ -10,7 +10,7 @@ All six assessment features are implemented: login, overview, user table, search
 
 | Check | Result |
 | --- | --- |
-| Backend pytest suite | 24 passed after the explicit administrator reset update |
+| Backend pytest suite | 33 passed after login abuse protection |
 | Backend Ruff lint | Passed |
 | Backend Ruff format check | Passed |
 | Backend pip dependency check | Passed |
@@ -19,7 +19,7 @@ All six assessment features are implemented: login, overview, user table, search
 | Frontend Prettier check | Passed |
 | Frontend Vitest suite | 24 passed across 8 files after reload persistence |
 | Frontend production build | Passed |
-| Playwright Chromium suite | 9 passed after reload persistence; complete runner exit code 0 |
+| Playwright Chromium suite | 9 passed after login abuse protection; complete runner exit code 0 |
 | Fresh frontend dependencies | `npm ci` and production build passed in `.verification/clean/frontend` |
 | Fresh backend environment | Pinned dependency installation, seed, health, login, directory and pip check passed in `.verification/clean/backend` |
 
@@ -91,6 +91,14 @@ Executed verification: 24 backend tests passed, including reset login success, o
 The user requested sign-in to survive refresh. The original memory-only provider reset to unauthenticated on every reload. Sessions now persist in tab-scoped `sessionStorage` and are validated with `/auth/me` before protected content mounts. Restoration preserves the existing route and query, updates administrator metadata from the server, and retains the original expiry. Invalid/expired/revoked saved sessions are cleared. Temporary backend failures show a guarded retry/sign-out screen. Logout clears saved state before awaiting revocation. Browser storage restrictions retain memory-only login with an explanatory notice.
 
 Executed verification: 24 frontend tests passed, including allowlisted persistence without password fields, validation before rendering, rejected/corrupt/expired sessions, retry, logout failure, StrictMode cancellation, expiry cleanup and blocked storage. Nine Chromium scenarios passed: overview and filtered/paginated directory reload without another login, unchanged expiry, logout followed by reload, expired saved state, real server revocation and temporary validation failure/retry. Type checking, production build, Oxlint and Prettier passed. No backend code or dependency changes were required. The pre-existing user edit in `backend/README.md` was left untouched.
+
+### Login abuse protection
+
+Moved login throttling from the validated endpoint into ASGI middleware so malformed requests also count before parsing or database/password work. Configurable defaults are 10 requests per IP and 100 globally per sliding minute, two in-flight logins, an 8 KiB actual streamed-body limit and a five-second body-read timeout. Unsupported media types and compressed bodies are rejected. Throttling returns `429`, `Retry-After` and an actionable message consumed by the existing login form. Limiter memory is bounded by the global cap. Slots are released on disconnect, timeout and downstream failure. Responses retain allowed-origin CORS and no-store headers; API responses add nosniff and no-referrer headers. No credentials, dependencies or database schema were changed.
+
+Executed verification: 33 backend tests passed, including sliding-window expiry, bounded state under rotating addresses, spoofed forwarded headers, malformed/trailing-slash requests, invalid JSON, rejection CORS, oversized streamed bodies with misleading declared length, compressed bodies, concurrency rejection, downstream errors, slow reads and disconnect recovery. All nine real/browser-interception Chromium scenarios passed against isolated servers, covering login, reload persistence, filters, navigation, expiry/revocation and recovery. Ruff lint/format and dependency consistency checks passed. Frontend source was unchanged, so component tests/build/type checking were not rerun for this backend-only update.
+
+These are application-level, process-local controls. They reset on restart and do not constitute a public deployment or penetration-test result. Shared limiting, trusted ingress/proxy configuration, HTTPS, connection/header limits and frontend-host security headers remain deployment work. MFA remains a recommended separate enhancement for an internet-facing administrator portal.
 
 ### Release limitations
 
