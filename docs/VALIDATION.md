@@ -1,16 +1,16 @@
 # Implementation and verification evidence
 
-Updated: 5 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. This records executed checks; it does not claim public deployment or physical-device acceptance.
+Updated: 5 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. The Render backend deployment is recorded below; frontend hosting and physical-device acceptance are not claimed.
 
 ## Delivered scope
 
-All six assessment features are implemented: login, overview, user table, search/filter, API request feedback and responsive navigation. The backend uses SQLite and 80 deterministic synthetic users. Administrator credentials were generated locally in the ignored `backend/.env`; no real credentials are present in committed examples or browser code.
+All six assessment features are implemented: login, overview, user table, search/filter, API request feedback and responsive navigation. The backend uses SQLite locally, PostgreSQL on Render and 80 deterministic synthetic users. Credentials are supplied through ignored local configuration or Render secrets; no real credentials are present in committed examples or browser code.
 
 ## Automated checks executed
 
 | Check | Result |
 | --- | --- |
-| Backend pytest suite | 33 passed after login abuse protection |
+| Backend pytest suite | 41 passed with the real Render PostgreSQL contract test enabled |
 | Backend Ruff lint | Passed |
 | Backend Ruff format check | Passed |
 | Backend pip dependency check | Passed |
@@ -19,7 +19,7 @@ All six assessment features are implemented: login, overview, user table, search
 | Frontend Prettier check | Passed |
 | Frontend Vitest suite | 24 passed across 8 files after reload persistence |
 | Frontend production build | Passed |
-| Playwright Chromium suite | 9 passed after login abuse protection; complete runner exit code 0 |
+| Playwright Chromium suite | 9 passed after PostgreSQL support; local SQLite-backed servers, complete runner exit code 0 |
 | Fresh frontend dependencies | `npm ci` and production build passed in `.verification/clean/frontend` |
 | Fresh backend environment | Pinned dependency installation, seed, health, login, directory and pip check passed in `.verification/clean/backend` |
 
@@ -100,11 +100,23 @@ Executed verification: 33 backend tests passed, including sliding-window expiry,
 
 These are application-level, process-local controls. They reset on restart and do not constitute a public deployment or penetration-test result. Shared limiting, trusted ingress/proxy configuration, HTTPS, connection/header limits and frontend-host security headers remain deployment work. MFA remains a recommended separate enhancement for an internet-facing administrator portal.
 
+### Render backend deployment
+
+Deployed the backend to Render Free in Frankfurt from commit `36dd46233f7889005532f8629b4d5a1f9bfdfcdc`, with a separate Render Free PostgreSQL database. The API is available at [credisure-api-gtfm.onrender.com](https://credisure-api-gtfm.onrender.com/api/health). The database expires on 5 December 2026. Automatic deploys are disabled, and existing unrelated workspace services were not changed.
+
+Added a small database adapter using bound named parameters, PostgreSQL TLS with bounded connection/statement/lock waits, repeatable-read GET snapshots and serialized administrator maintenance. SQLite local development remains supported. Hosted startup refuses an ephemeral SQLite fallback, initializes durable storage and seeds demo profiles idempotently before starting one worker. The validated Render Blueprint describes the same resource choices; the actual resources were created through the official CLI, not managed by a Blueprint.
+
+Verification: all 41 backend tests passed with the real PostgreSQL contract case enabled. That case uses a unique isolated schema, confirms the search path before seeding, and removes only its own schema. It exercised seeding/idempotence, protected API calls, counts, case-insensitive/literal search, pagination, logout and reset-driven revocation. Nine Chromium scenarios passed against isolated local SQLite-backed servers. Ruff lint/format and dependency checks passed. The initial mixed test run encountered Windows temporary-directory permissions; the complete passing run used a fresh workspace-local test directory.
+
+Live HTTPS checks passed for readiness/no-store/nosniff headers, unauthenticated access rejection, generic credential errors, sign-in, counts `80/48/16/16`, combined search/status filtering, page two, logout and token rejection. A Render restart produced a confirmed fresh application startup; the pre-restart bearer session, administrator identity, 80-user dataset and configured credentials remained usable afterward. Logout then revoked the test sessions. External database access was temporarily restricted to the deployment computer for testing, then disabled entirely. Hosted administrator credentials are separate from local credentials and saved in the ignored `.verification/render/production.env` handoff file and Render's `.env` secret file. No local SQLite contents or existing sessions were uploaded.
+
+Frontend source was unchanged. Hosted browser/CORS integration remains pending until the frontend origin is chosen; the backend's allowlist is empty by design. This was an assessment deployment and functional verification, not a production security certification or load test.
+
 ### Release limitations
 
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.
 - Sign-in persistence is tab-scoped, requires available browser storage and keeps the original server expiry (30 minutes by default). Same-origin JavaScript can read session storage; this is not a long-lived remember-me feature.
 - The directory is read-only. Account-status changes, registration, password reset and persistent sessions are outside scope.
-- No public hosting or production rollout was performed. Public deployment needs HTTPS, persistent storage, explicit API routing/CORS, SPA history fallback and a shared limiter for multiple processes. The current IP-based limiter is process-local and does not trust forwarded-IP headers.
+- The backend is hosted publicly on Render Free; the frontend is not hosted yet. Multi-process deployment needs shared limiting. The current limiter is process-local, and hosted startup disables forwarded-header trust, so ingress clients can share a throttle bucket. No load test or penetration test was performed.
 - The production bundle needs `/api` reverse-proxied or `VITE_API_BASE_URL` set to the deployed API; the Vite development proxy is development-only.

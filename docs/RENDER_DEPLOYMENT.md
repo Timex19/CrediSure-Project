@@ -2,6 +2,19 @@
 
 The selected assessment setup uses Render Free for the API and Render Free PostgreSQL for durable storage. Render's free database expires 30 days after creation; it is not permanent free storage. The web service sleeps after 15 idle minutes, and a cold start can take about a minute. The frontend's default ten-second timeout can expire during a cold start; open the health URL first or allow a longer deployed request timeout. See [Render's free-plan limits](https://render.com/docs/free).
 
+## Current assessment deployment
+
+Deployed on 5 November 2026 from commit `36dd46233f7889005532f8629b4d5a1f9bfdfcdc`:
+
+- API base: `https://credisure-api-gtfm.onrender.com/api`.
+- [Health check](https://credisure-api-gtfm.onrender.com/api/health) and [interactive API documentation](https://credisure-api-gtfm.onrender.com/docs). The bare `/` route is not a frontend page.
+- [Render service dashboard](https://dashboard.render.com/web/srv-dbm4g3jbc2fs7389tvn0).
+- Service `srv-dbm4g3jbc2fs7389tvn0`; database `dpg-dbm4d2mc6qcc73fv1egg-a`; both Free in Frankfurt.
+- Database expiry: 5 December 2026. Export/migrate or upgrade before expiration if the assessment must remain available.
+- Hosted email/password handoff: `.verification/render/production.env` on the development computer. This ignored file and Render's `.env` secret file contain a separate strong hosted password. Local development credentials were not changed. Do not commit or share the file.
+
+Live API checks and a service restart confirmed authentication, summary counts, directory search/filter/pagination, logout revocation and survival of the account, data and an existing unexpired session. All verification sessions were revoked afterward. The database external allowlist is empty. The frontend is still local, and no frontend origin has been added to CORS.
+
 ## Configuration
 
 The [Render Blueprint](../render.yaml) defines:
