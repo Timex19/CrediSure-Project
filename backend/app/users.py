@@ -42,28 +42,35 @@ def list_users(
     if page_size not in (10, 25, 50):
         raise HTTPException(422, "Page size must be 10, 25, or 50.")
     conditions = []
-    parameters: list[str | int] = []
+    parameters: dict[str, str | int] = {}
     if search.strip():
         # Escape LIKE metacharacters so input is always a literal substring.
         term = (
-            search.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+            search.strip()
+            .lower()
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_")
         )
-        conditions.append("(full_name LIKE ? ESCAPE '\\' OR email LIKE ? ESCAPE '\\')")
-        parameters.extend([f"%{term}%", f"%{term}%"])
+        conditions.append(
+            "(LOWER(full_name) LIKE :term ESCAPE '\\' "
+            "OR LOWER(email) LIKE :term ESCAPE '\\')"
+        )
+        parameters["term"] = f"%{term}%"
     if status:
-        conditions.append("status = ?")
-        parameters.append(status)
+        conditions.append("status = :status")
+        parameters["status"] = status
     where = " WHERE " + " AND ".join(conditions) if conditions else ""
     # One read transaction keeps metadata and page items on the same snapshot.
-    database.execute("BEGIN")
+    database.begin_read()
     total = database.execute(
-        "SELECT COUNT(*) FROM users" + where, parameters
-    ).fetchone()[0]
+        "SELECT COUNT(*) AS total FROM users" + where, parameters
+    ).fetchone()["total"]
     rows = database.execute(
         "SELECT id, full_name, email, role, status, joined_date FROM users"
         + where
-        + " ORDER BY joined_date DESC, id ASC LIMIT ? OFFSET ?",
-        [*parameters, page_size, (page - 1) * page_size],
+        + " ORDER BY joined_date DESC, id ASC LIMIT :limit OFFSET :offset",
+        {**parameters, "limit": page_size, "offset": (page - 1) * page_size},
     ).fetchall()
     return UserPage(
         items=[User(**dict(row)) for row in rows],

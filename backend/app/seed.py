@@ -115,46 +115,56 @@ DEMO_USER_NAMES = (
 
 def seed(settings: Settings) -> None:
     email, password = settings.administrator_credentials()
-    initialize(settings.database_path)
-    with connect(settings.database_path) as database:
+    initialize(settings)
+    with connect(settings) as database:
+        database.lock_administrators()
         existing = database.execute(
-            "SELECT id FROM administrators WHERE email = ?", (email,)
+            "SELECT id FROM administrators WHERE email = :email", {"email": email}
         ).fetchone()
         if existing is None:
-            if database.execute("SELECT COUNT(*) FROM administrators").fetchone()[0]:
+            if database.execute(
+                "SELECT COUNT(*) AS total FROM administrators"
+            ).fetchone()["total"]:
                 raise ValueError(
                     "An administrator already exists; seeding will not replace it"
                 )
             database.execute(
-                "INSERT INTO administrators(email, password_hash) VALUES (?, ?)",
-                (email, PasswordHasher().hash(password)),
+                "INSERT INTO administrators(id, email, password_hash) "
+                "VALUES (1, :email, :hash)",
+                {"email": email, "hash": PasswordHasher().hash(password)},
             )
         for index, full_name in enumerate(DEMO_USER_NAMES):
             user_email = full_name.lower().replace(" ", ".") + "@example.com"
             database.execute(
-                "INSERT OR IGNORE INTO users VALUES (?, ?, ?, ?, ?, ?)",
-                (
-                    index + 1,
-                    full_name,
-                    user_email,
-                    "admin" if index % 9 == 0 else "member",
-                    ("active", "active", "active", "pending", "inactive")[index % 5],
-                    (date(2026, 1, 5) + timedelta(days=index * 3)).isoformat(),
-                ),
+                "INSERT INTO users VALUES "
+                "(:id, :name, :email, :role, :status, :joined) "
+                "ON CONFLICT DO NOTHING",
+                {
+                    "id": index + 1,
+                    "name": full_name,
+                    "email": user_email,
+                    "role": "admin" if index % 9 == 0 else "member",
+                    "status": ("active", "active", "active", "pending", "inactive")[
+                        index % 5
+                    ],
+                    "joined": (
+                        date(2026, 1, 5) + timedelta(days=index * 3)
+                    ).isoformat(),
+                },
             )
             # Upgrade only identifiable old demo rows, never edited/custom profiles.
             old_first = _LEGACY_FIRST_NAMES[index % len(_LEGACY_FIRST_NAMES)]
             old_last = _LEGACY_LAST_NAMES[index // len(_LEGACY_FIRST_NAMES)]
             database.execute(
-                "UPDATE users SET full_name = ?, email = ? "
-                "WHERE id = ? AND full_name = ? AND email = ?",
-                (
-                    full_name,
-                    user_email,
-                    index + 1,
-                    f"{old_first} {old_last}",
-                    f"{old_first.lower()}.{old_last.lower()}@example.com",
-                ),
+                "UPDATE users SET full_name = :name, email = :email "
+                "WHERE id = :id AND full_name = :old_name AND email = :old_email",
+                {
+                    "name": full_name,
+                    "email": user_email,
+                    "id": index + 1,
+                    "old_name": f"{old_first} {old_last}",
+                    "old_email": f"{old_first.lower()}.{old_last.lower()}@example.com",
+                },
             )
 
 

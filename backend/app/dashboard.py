@@ -21,8 +21,10 @@ class Summary(BaseModel):
 def summary(database: Database) -> Summary:
     row = database.execute(
         "SELECT COUNT(*) total_users, "
-        "COALESCE(SUM(status = 'active'), 0) active_users, "
-        "COALESCE(SUM(status = 'inactive'), 0) inactive_users, "
-        "COALESCE(SUM(status = 'pending'), 0) pending_users FROM users"
+        "COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) active_users, "
+        "COALESCE(SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END), 0) "
+        "inactive_users, "
+        "COALESCE(SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END), 0) "
+        "pending_users FROM users"
     ).fetchone()
     return Summary(**dict(row))

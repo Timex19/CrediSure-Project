@@ -2,7 +2,6 @@
 
 import hashlib
 import secrets
-import sqlite3
 import time
 from datetime import UTC, datetime
 from typing import Annotated
@@ -13,14 +12,14 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 
-from app.database import get_database
+from app.database import DatabaseConnection, Row, get_database
 
 router = APIRouter(prefix="/api/auth", tags=["authentication"])
 password_hasher = PasswordHasher()
 # Verify unknown accounts against an actual Argon2 hash to avoid a fast-failure path.
 dummy_hash = password_hasher.hash(secrets.token_urlsafe(32))
 bearer = HTTPBearer(auto_error=False)
-Database = Annotated[sqlite3.Connection, Depends(get_database)]
+Database = Annotated[DatabaseConnection, Depends(get_database)]
 
 
 class Administrator(BaseModel):
@@ -47,14 +46,14 @@ def token_hash(token: str) -> str:
 def require_session(
     database: Database,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
-) -> sqlite3.Row:
+) -> Row:
     row = None
     if credentials and len(credentials.credentials) <= 256:
         row = database.execute(
             "SELECT a.id, a.email, s.token_hash FROM sessions s "
             "JOIN administrators a ON a.id = s.administrator_id "
-            "WHERE s.token_hash = ? AND s.expires_at > ?",
-            (token_hash(credentials.credentials), int(time.time())),
+            "WHERE s.token_hash = :token AND s.expires_at > :now",
+            {"token": token_hash(credentials.credentials), "now": int(time.time())},
         ).fetchone()
     if row is None:
         raise HTTPException(
@@ -65,13 +64,14 @@ def require_session(
     return row
 
 
-Session = Annotated[sqlite3.Row, Depends(require_session)]
+Session = Annotated[Row, Depends(require_session)]
 
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, request: Request, database: Database) -> LoginResponse:
     administrator = database.execute(
-        "SELECT * FROM administrators WHERE email = ?", (str(payload.email).lower(),)
+        "SELECT * FROM administrators WHERE email = :email",
+        {"email": str(payload.email).lower()},
     ).fetchone()
     try:
         password_hasher.verify(
@@ -84,16 +84,21 @@ def login(payload: LoginRequest, request: Request, database: Database) -> LoginR
         raise HTTPException(401, "Email or password is incorrect.")
     if password_hasher.check_needs_rehash(administrator["password_hash"]):
         database.execute(
-            "UPDATE administrators SET password_hash = ? WHERE id = ?",
-            (password_hasher.hash(payload.password), administrator["id"]),
+            "UPDATE administrators SET password_hash = :hash WHERE id = :id",
+            {"hash": password_hasher.hash(payload.password), "id": administrator["id"]},
         )
     token = secrets.token_urlsafe(32)
     now = int(time.time())
     expires = now + request.app.state.settings.session_minutes * 60
-    database.execute("DELETE FROM sessions WHERE expires_at <= ?", (now,))
+    database.execute("DELETE FROM sessions WHERE expires_at <= :now", {"now": now})
     database.execute(
-        "INSERT INTO sessions VALUES (?, ?, ?, ?)",
-        (token_hash(token), administrator["id"], now, expires),
+        "INSERT INTO sessions VALUES (:token, :id, :now, :expires)",
+        {
+            "token": token_hash(token),
+            "id": administrator["id"],
+            "now": now,
+            "expires": expires,
+        },
     )
     return LoginResponse(
         access_token=token,
@@ -112,6 +117,7 @@ def me(session: Session) -> Administrator:
 @router.post("/logout", status_code=204)
 def logout(session: Session, database: Database) -> Response:
     database.execute(
-        "DELETE FROM sessions WHERE token_hash = ?", (session["token_hash"],)
+        "DELETE FROM sessions WHERE token_hash = :token",
+        {"token": session["token_hash"]},
     )
     return Response(status_code=204)

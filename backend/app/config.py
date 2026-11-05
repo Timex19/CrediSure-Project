@@ -1,6 +1,7 @@
 """Validated application configuration loaded from the environment."""
 
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from pydantic import AnyHttpUrl, EmailStr, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,6 +20,7 @@ class Settings(BaseSettings):
 
     allowed_origins: list[AnyHttpUrl] = Field(default_factory=list)
     database_path: Path = BACKEND_DIR / "data" / "credisure.sqlite3"
+    database_url: SecretStr | None = None
     admin_email: EmailStr | None = None
     admin_password: SecretStr | None = None
     session_minutes: int = Field(default=30, ge=1, le=1440)
@@ -28,6 +30,15 @@ class Settings(BaseSettings):
     login_concurrency: int = Field(default=2, ge=1, le=8)
     login_body_bytes: int = Field(default=8192, ge=1024, le=65536)
     login_body_timeout_seconds: int = Field(default=5, ge=1, le=30)
+
+    @field_validator("database_url")
+    @classmethod
+    def validate_database_url(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is not None:
+            parsed = urlsplit(value.get_secret_value())
+            if parsed.scheme not in ("postgres", "postgresql") or not parsed.hostname:
+                raise ValueError("Database URL must be a PostgreSQL connection URL")
+        return value
 
     def administrator_credentials(self) -> tuple[str, str]:
         """Read validated credentials for explicit seed/reset commands only."""

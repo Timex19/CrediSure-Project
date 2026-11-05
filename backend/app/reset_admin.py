@@ -1,19 +1,17 @@
 """Explicitly replace the single local administrator's configured credentials."""
 
-import sqlite3
-
 from argon2 import PasswordHasher
 
 from app.config import Settings
-from app.database import connect
+from app.database import DATABASE_ERRORS, connect
 
 
 def reset_admin(settings: Settings) -> None:
     email, password = settings.administrator_credentials()
     password_hash = PasswordHasher().hash(password)
-    with connect(settings.database_path) as database:
+    with connect(settings) as database:
         # Lock before inspecting the single-administrator assumption.
-        database.execute("BEGIN IMMEDIATE")
+        database.lock_administrators()
         administrators = database.execute("SELECT id FROM administrators").fetchall()
         if len(administrators) != 1:
             raise ValueError(
@@ -22,18 +20,20 @@ def reset_admin(settings: Settings) -> None:
             )
         administrator_id = administrators[0]["id"]
         database.execute(
-            "UPDATE administrators SET email = ?, password_hash = ? WHERE id = ?",
-            (email, password_hash, administrator_id),
+            "UPDATE administrators SET email = :email, password_hash = :hash "
+            "WHERE id = :id",
+            {"email": email, "hash": password_hash, "id": administrator_id},
         )
         database.execute(
-            "DELETE FROM sessions WHERE administrator_id = ?", (administrator_id,)
+            "DELETE FROM sessions WHERE administrator_id = :id",
+            {"id": administrator_id},
         )
 
 
 if __name__ == "__main__":
     try:
         reset_admin(Settings())
-    except (ValueError, sqlite3.Error) as error:
+    except (ValueError, *DATABASE_ERRORS) as error:
         message = (
             str(error)
             if isinstance(error, ValueError)

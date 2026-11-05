@@ -1,0 +1,35 @@
+# Render Free PostgreSQL expires 30 days after creation.
+databases:
+  - name: credisure-db
+    plan: free
+    region: frankfurt
+    databaseName: credisure
+    user: credisure
+    ipAllowList: []
+
+services:
+  - type: web
+    name: credisure-api
+    runtime: python
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.serve
+    healthCheckPath: /api/health
+    autoDeployTrigger: 'off'
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.9
+      - key: CREDISURE_DATABASE_URL
+        fromDatabase:
+          name: credisure-db
+          property: connectionString
+      - key: CREDISURE_ADMIN_EMAIL
+        sync: false
+      - key: CREDISURE_ADMIN_PASSWORD
+        sync: false
+      - key: CREDISURE_ALLOWED_ORIGINS
+        value: '[]'
+      - key: CREDISURE_LOGIN_CONCURRENCY
+        value: '1'
