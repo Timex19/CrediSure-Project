@@ -18,5 +18,8 @@ dist/
 .env
 .env.*
 !.env.example
+# Public Vite build configuration only; never add credentials to this file.
+!frontend/.env.production
+.firebase/
 *.local
 *.log

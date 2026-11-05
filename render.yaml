@@ -30,6 +30,6 @@ services:
       - key: CREDISURE_ADMIN_PASSWORD
         sync: false
       - key: CREDISURE_ALLOWED_ORIGINS
-        value: '[]'
+        value: '["https://credisure-a28d1.web.app","https://credisure-a28d1.firebaseapp.com"]'
       - key: CREDISURE_LOGIN_CONCURRENCY
         value: '1'
