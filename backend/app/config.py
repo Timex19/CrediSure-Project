@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     admin_email: EmailStr | None = None
     admin_password: SecretStr | None = None
     session_minutes: int = Field(default=30, ge=1, le=1440)
+    login_attempts_per_ip: int = Field(default=10, ge=1, le=100)
+    login_attempts_total: int = Field(default=100, ge=1, le=1000)
+    login_window_seconds: int = Field(default=60, ge=1, le=3600)
+    login_concurrency: int = Field(default=2, ge=1, le=8)
+    login_body_bytes: int = Field(default=8192, ge=1024, le=65536)
+    login_body_timeout_seconds: int = Field(default=5, ge=1, le=30)
 
     def administrator_credentials(self) -> tuple[str, str]:
         """Read validated credentials for explicit seed/reset commands only."""

@@ -4,9 +4,7 @@ import hashlib
 import secrets
 import sqlite3
 import time
-from collections import defaultdict, deque
 from datetime import UTC, datetime
-from threading import Lock
 from typing import Annotated
 
 from argon2 import PasswordHasher
@@ -23,29 +21,6 @@ password_hasher = PasswordHasher()
 dummy_hash = password_hasher.hash(secrets.token_urlsafe(32))
 bearer = HTTPBearer(auto_error=False)
 Database = Annotated[sqlite3.Connection, Depends(get_database)]
-
-
-class LoginLimiter:
-    """Bound local login work. Multi-worker public hosting needs a shared limiter."""
-
-    def __init__(self) -> None:
-        self.attempts: dict[str, deque[float]] = defaultdict(deque)
-        self.lock = Lock()
-
-    def check(self, key: str) -> None:
-        now = time.monotonic()
-        with self.lock:
-            for address in list(self.attempts):
-                while self.attempts[address] and self.attempts[address][0] <= now - 60:
-                    self.attempts[address].popleft()
-                if not self.attempts[address]:
-                    del self.attempts[address]
-            attempts = self.attempts[key]
-            if len(attempts) >= 10:
-                raise HTTPException(
-                    429, "Too many sign-in attempts. Try again in a minute."
-                )
-            attempts.append(now)
 
 
 class Administrator(BaseModel):
@@ -95,9 +70,6 @@ Session = Annotated[sqlite3.Row, Depends(require_session)]
 
 @router.post("/login", response_model=LoginResponse)
 def login(payload: LoginRequest, request: Request, database: Database) -> LoginResponse:
-    request.app.state.login_limiter.check(
-        request.client.host if request.client else "local"
-    )
     administrator = database.execute(
         "SELECT * FROM administrators WHERE email = ?", (str(payload.email).lower(),)
     ).fetchone()

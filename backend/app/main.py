@@ -8,11 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException
 
-from app.auth import LoginLimiter
 from app.auth import router as auth_router
 from app.config import Settings
 from app.dashboard import router as dashboard_router
 from app.health import router as health_router
+from app.login_protection import LoginProtection
 from app.users import router as users_router
 
 
@@ -24,13 +24,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         description="Backend for the CrediSure dashboard assessment.",
     )
     app.state.settings = configuration
-    app.state.login_limiter = LoginLimiter()
 
     @app.middleware("http")
     async def prevent_caching(request: Request, call_next):
         response = await call_next(request)
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["Referrer-Policy"] = "no-referrer"
         return response
 
     @app.exception_handler(HTTPException)
@@ -85,6 +86,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             headers={"Cache-Control": "no-store"},
         )
 
+    app.add_middleware(LoginProtection, settings=configuration)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
