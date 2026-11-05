@@ -120,6 +120,8 @@ Deployed the Vite production build to [credisure-a28d1.web.app](https://credisur
 
 The initialized GitHub workflows now use Node 22, install/check/test/build from `frontend`, and deploy with `entryPoint: frontend`. The Firebase service-account repository secret was confirmed by name, without reading its value. Main deploys are serialized; preview deployments are limited to same-repository PRs, and authenticated preview use requires an explicitly permitted CORS origin. See [deployment details](FIREBASE_DEPLOYMENT.md).
 
+GitHub Actions [run 42005127455](https://github.com/Timex19/CrediSure-Project/actions/runs/42005127455) completed successfully for commit `a8aa5cd`, including dependency installation, type checking, linting, all 24 frontend tests, production build and live Firebase deployment. SPA fallback, immutable hashed assets, security headers, both permitted CORS origins and rejection of an unlisted origin were also verified over HTTPS. PR preview deployment remains untested.
+
 ### Release limitations
 
 - Browser integration was verified with automated Chromium on Windows. Safari, Firefox, physical phones, assistive technology and a formal WCAG audit were not performed.

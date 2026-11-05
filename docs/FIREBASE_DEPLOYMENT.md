@@ -32,6 +32,8 @@ The initialized workflows were corrected for the monorepo: Node 22, npm cache us
 
 Main-branch frontend/workflow changes deploy live. Deployment jobs are serialized. Same-repository PRs can deploy preview channels; fork PRs cannot access the deployment secret. Preview origins require explicit backend approval/configuration before login works. Production CORS does not grant wildcard access to preview channels. Documentation-only changes do not trigger a live deployment.
 
+The [first main-branch workflow run](https://github.com/Timex19/CrediSure-Project/actions/runs/42005127455) completed successfully for commit `a8aa5cd`: dependency installation, type checking, linting, 24 tests, production build and Firebase live deployment all passed. No PR preview deployment was run for this change.
+
 ## Verification
 
 24 frontend tests, TypeScript checks, Oxlint, Prettier and the production build passed. An isolated Chromium browser verified the actual Firebase/Render combination: protected deep link, login, counts `80/48/16/16`, status filtering, pagination, refresh preserving route/page/session expiry, case-insensitive search, mobile overflow, logout and logged-out refresh. No browser JavaScript or CSP errors were observed. Hosted credentials came from the ignored `.verification/render/production.env`; they were not placed in browser build settings or screenshots of password fields.
