@@ -1,6 +1,6 @@
 ﻿# CrediSure Backend
 
-FastAPI with SQLite, Argon2id password hashing and revocable opaque bearer sessions. Use Python 3.13 and run commands from this directory.
+FastAPI with SQLite for local development, PostgreSQL for Render hosting, Argon2id password hashing and revocable opaque bearer sessions. Use Python 3.13 and run commands from this directory.
 
 ## Setup
 
@@ -29,6 +29,7 @@ Process variables override `backend/.env`.
 | --- | --- |
 | `CREDISURE_ALLOWED_ORIGINS` | JSON list of explicit HTTP(S) origins; empty list by default |
 | `CREDISURE_DATABASE_PATH` | `backend/data/credisure.sqlite3`; relative paths resolve against backend/ |
+| `CREDISURE_DATABASE_URL` | Optional PostgreSQL URL; takes precedence over the SQLite path and is treated as a secret |
 | `CREDISURE_SESSION_MINUTES` | 30; permitted range 1–1440 |
 | `CREDISURE_LOGIN_ATTEMPTS_PER_IP` | 10 admitted login requests per window; range 1–100 |
 | `CREDISURE_LOGIN_ATTEMPTS_TOTAL` | 100 admitted login requests across all IPs per window; range 1–1000 |
@@ -73,6 +74,16 @@ These controls are process-local and reset on restart. Multiple workers/instance
 The application uses the ASGI client address and never parses `X-Forwarded-For` itself. Uvicorn may rewrite that address for proxies it trusts. For public hosting, configure trusted proxy IPs explicitly, prevent direct access around the ingress, and never trust forwarded headers from arbitrary clients. The local Vite proxy can group users under its own address. Enforce HTTPS, connection/body/header limits and timeouts at the ingress; configure CSP/frame protection on the host serving the frontend HTML. No public infrastructure was configured by this change.
 
 Design reference: [OWASP authentication guidance](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html), including throttling, generic errors and the denial-of-service tradeoff of account lockouts.
+
+## Render hosting
+
+The repository's [Render Blueprint](../render.yaml) specifies a free Python web service and a separate free PostgreSQL database in Frankfurt, with external database connections disabled. See the [deployment guide](../docs/RENDER_DEPLOYMENT.md).
+
+`python -m app.serve` refuses to start against ephemeral SQLite, initializes PostgreSQL and idempotently seeds the demo records before starting one Uvicorn worker on Render's `PORT`. Existing credentials and sessions survive restarts because they are stored in PostgreSQL. Configuration changes do not reset the administrator. SQLite remains the default for the existing local development commands. Existing local SQLite contents are not uploaded or migrated automatically.
+
+PostgreSQL connections require TLS (`require` by default; explicit `verify-ca`/`verify-full` modes are preserved), have five-second connection/statement/lock limits, and commit or roll back on scope exit. GET requests use repeatable-read transactions for consistent directory counts/items; writes use read-committed transactions. Administrator seed/reset operations take a database lock. Hosted startup disables forwarded-header trust, so requests through Render's proxy can share an IP throttle bucket; configure a verified shared ingress limiter before expanding usage.
+
+To run the isolated live PostgreSQL contract test, set `CREDISURE_TEST_POSTGRES_URL` to a TLS-enabled test database and run `python -m pytest tests/test_hosting.py`. The test creates a uniquely named schema, verifies it is selected before seeding, and removes only that schema afterward. This requires schema-creation permissions. Without that setting, the live PostgreSQL case is explicitly skipped.
 
 ## Checks
 

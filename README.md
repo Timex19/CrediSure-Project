@@ -1,6 +1,6 @@
 ﻿# CrediSure Assessment
 
-A read-only administrator dashboard built with React, TypeScript and Vite, backed by Python/FastAPI and SQLite.
+A read-only administrator dashboard built with React, TypeScript and Vite, backed by Python/FastAPI with SQLite locally and PostgreSQL on Render.
 
 ## Features
 
@@ -91,6 +91,6 @@ Default test ports are 5274 and 8200. Configure `E2E_FRONTEND_PORT`, `E2E_BACKEN
 - `backend/app/`: configuration, database access, authentication and API routes.
 - `backend/tests/` and `frontend/e2e/`: API and browser verification.
 
-This is a local assessment application. User editing, registration, public password recovery, long-lived remembered sign-in and public deployment are outside scope. Public hosting requires HTTPS, an explicit frontend origin or reverse proxy, a persistent database volume, SPA route fallback, and a shared login limiter if using multiple workers. Login protection defaults to 10 requests per minute per client IP, 100 total per minute, two concurrent login requests, an 8 KiB body limit and a five-second body timeout within one process. Limits run before parsing and password verification. See [login protection and deployment boundaries](backend/README.md#login-abuse-protection). CORS is not authentication.
+The backend supports SQLite for local development and PostgreSQL for Render hosting. See the [Render deployment guide](docs/RENDER_DEPLOYMENT.md) and [Blueprint](render.yaml). Render's free database expires after 30 days. User editing, registration, public password recovery and long-lived remembered sign-in remain outside scope. Public hosting requires HTTPS, an explicit frontend origin or reverse proxy, durable database storage, SPA route fallback, and a shared login limiter if using multiple workers. Login protection defaults to 10 requests per minute per client IP, 100 total per minute, two concurrent login requests, an 8 KiB body limit and a five-second body timeout within one process. The Render configuration reduces concurrent login work to one request. Limits run before parsing and password verification. See [login protection and deployment boundaries](backend/README.md#login-abuse-protection). CORS is not authentication.
 
 More details: [backend setup](backend/README.md) and [frontend setup](frontend/README.md).
