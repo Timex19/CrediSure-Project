@@ -2,6 +2,8 @@
 
 A read-only administrator dashboard built with React, TypeScript and Vite, backed by Python/FastAPI with SQLite locally and PostgreSQL on Render.
 
+Live dashboard: [credisure-a28d1.web.app](https://credisure-a28d1.web.app). Backend API documentation: [Render API](https://credisure-api-gtfm.onrender.com/docs). See [Firebase deployment](docs/FIREBASE_DEPLOYMENT.md) for configuration and verification details.
+
 ## Features
 
 - Backend-verified login, expiring sessions and logout revocation.

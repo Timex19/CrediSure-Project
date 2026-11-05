@@ -1,6 +1,6 @@
 # Implementation and verification evidence
 
-Updated: 5 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. The Render backend deployment is recorded below; frontend hosting and physical-device acceptance are not claimed.
+Updated: 5 November 2026. Local Windows environment: Python 3.13.9, Node 22.20.0. Render backend and Firebase frontend deployments are recorded below; physical-device acceptance is not claimed.
 
 ## Delivered scope
 
@@ -110,7 +110,15 @@ Verification: all 41 backend tests passed with the real PostgreSQL contract case
 
 Live HTTPS checks passed for readiness/no-store/nosniff headers, unauthenticated access rejection, generic credential errors, sign-in, counts `80/48/16/16`, combined search/status filtering, page two, logout and token rejection. A Render restart produced a confirmed fresh application startup; the pre-restart bearer session, administrator identity, 80-user dataset and configured credentials remained usable afterward. Logout then revoked the test sessions. External database access was temporarily restricted to the deployment computer for testing, then disabled entirely. Hosted administrator credentials are separate from local credentials and saved in the ignored `.verification/render/production.env` handoff file and Render's `.env` secret file. No local SQLite contents or existing sessions were uploaded.
 
-Frontend source was unchanged. Hosted browser/CORS integration remains pending until the frontend origin is chosen; the backend's allowlist is empty by design. This was an assessment deployment and functional verification, not a production security certification or load test.
+Frontend source was unchanged during the backend deployment. Hosted browser/CORS integration was subsequently completed in the Firebase deployment below. This was an assessment deployment and functional verification, not a production security certification or load test.
+
+### Firebase frontend deployment
+
+Deployed the Vite production build to [credisure-a28d1.web.app](https://credisure-a28d1.web.app), with its alternate `firebaseapp.com` origin. Corrected the initialized `public` directory to `dist`, removed the generated welcome-page placeholder, retained SPA rewrites and added deployment security/cache headers. Public `.env.production` settings select the Render `/api` URL and a 90-second request timeout. No administrator credentials were placed in frontend configuration. The exact two production origins were added to Render CORS without replacing other environment variables or secrets, and the existing backend code was redeployed to apply them.
+
+24 frontend tests, type checking, Oxlint, Prettier and the production build passed. An isolated Chromium browser exercised the actual hosted frontend and API: protected deep link, real login, summary counts, status filtering, pagination, reload preserving route/page/absolute expiry, search, mobile document overflow, logout and logged-out reload. No browser JavaScript or CSP errors were observed. A temporary verification selector initially used three dots rather than the input's ellipsis; correcting the selector allowed the complete check to pass without changing application code.
+
+The initialized GitHub workflows now use Node 22, install/check/test/build from `frontend`, and deploy with `entryPoint: frontend`. The Firebase service-account repository secret was confirmed by name, without reading its value. Main deploys are serialized; preview deployments are limited to same-repository PRs, and authenticated preview use requires an explicitly permitted CORS origin. See [deployment details](FIREBASE_DEPLOYMENT.md).
 
 ### Release limitations
 
@@ -118,5 +126,5 @@ Frontend source was unchanged. Hosted browser/CORS integration remains pending u
 - Request timeout is covered with controlled unit timers. Slow/failure/zero-data/unauthorized browser scenarios use explicit interception; they are distinct from the real API flow.
 - Sign-in persistence is tab-scoped, requires available browser storage and keeps the original server expiry (30 minutes by default). Same-origin JavaScript can read session storage; this is not a long-lived remember-me feature.
 - The directory is read-only. Account-status changes, registration, password reset and persistent sessions are outside scope.
-- The backend is hosted publicly on Render Free; the frontend is not hosted yet. Multi-process deployment needs shared limiting. The current limiter is process-local, and hosted startup disables forwarded-header trust, so ingress clients can share a throttle bucket. No load test or penetration test was performed.
+- The frontend is hosted on Firebase and the backend on Render Free. The free database expires on 5 December 2026. Multi-process deployment needs shared limiting. The current limiter is process-local, and hosted startup disables forwarded-header trust, so ingress clients can share a throttle bucket. No load test or penetration test was performed.
 - The production bundle needs `/api` reverse-proxied or `VITE_API_BASE_URL` set to the deployed API; the Vite development proxy is development-only.

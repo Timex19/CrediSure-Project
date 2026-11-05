@@ -13,7 +13,7 @@ Deployed on 5 November 2026 from commit `36dd46233f7889005532f8629b4d5a1f9bfdfcd
 - Database expiry: 5 December 2026. Export/migrate or upgrade before expiration if the assessment must remain available.
 - Hosted email/password handoff: `.verification/render/production.env` on the development computer. This ignored file and Render's `.env` secret file contain a separate strong hosted password. Local development credentials were not changed. Do not commit or share the file.
 
-Live API checks and a service restart confirmed authentication, summary counts, directory search/filter/pagination, logout revocation and survival of the account, data and an existing unexpired session. All verification sessions were revoked afterward. The database external allowlist is empty. The frontend is still local, and no frontend origin has been added to CORS.
+Live API checks and a service restart confirmed authentication, summary counts, directory search/filter/pagination, logout revocation and survival of the account, data and an existing unexpired session. All verification sessions from those backend deployment checks were revoked afterward. The database external allowlist is empty. The frontend is now hosted on [Firebase](https://credisure-a28d1.web.app); see [frontend deployment details](FIREBASE_DEPLOYMENT.md).
 
 ## Configuration
 
@@ -26,7 +26,7 @@ The [Render Blueprint](../render.yaml) defines:
 - A separate PostgreSQL database in the same region, accessed through its internal connection URL with TLS. External database access is disabled.
 - Explicit manual deploys, one API worker and one concurrent login request to bound password-hashing work on the free instance.
 - Administrator credentials supplied through Render's secret configuration. They are never stored in the Blueprint or committed files.
-- An empty CORS allowlist until the actual frontend origin is supplied. Same-origin API routing does not need CORS. Do not use a wildcard.
+- An exact CORS allowlist for `https://credisure-a28d1.web.app` and `https://credisure-a28d1.firebaseapp.com`. The deployed setting is a Render environment variable overriding the original empty secret-file value. Same-origin API routing does not need CORS. Do not use a wildcard.
 
 The CLI can create equivalent resources directly. If resources were created through the CLI, do not blindly apply the Blueprint afterward: inspect Render's plan first so you do not provision duplicates. The Blueprint is a validated reproducible specification, not proof that the deployment is Blueprint-managed.
 

@@ -20,6 +20,16 @@ Preserve existing environment configuration. The frontend requires the initializ
 
 Production requires an API reverse proxy for `/api`, or an explicit `VITE_API_BASE_URL` with permitted backend CORS origins. The Vite development proxy is not part of the production build. Never place server credentials in `VITE_*` variables.
 
+The checked-in `.env.production` contains public browser configuration for the Render API and a 90-second request timeout for Render Free cold starts. It overrides the local `.env` defaults during production builds; development still uses the configured local proxy. This file must never contain credentials. Set build-time environment variables to override it for another deployment.
+
+## Firebase Hosting
+
+Live site: [credisure-a28d1.web.app](https://credisure-a28d1.web.app). Hosting serves Vite's `dist`, rewrites application routes to `index.html`, revalidates HTML and caches hashed assets immutably. Security headers restrict scripts/resources to the site and API requests to the configured Render host. Inline styles remain allowed for the existing avatars/chart, while inline scripts are blocked.
+
+From this directory, `npm run deploy:hosting` builds and deploys only Hosting using `.firebaserc`. The GitHub workflows install/build/test from `frontend` and use `entryPoint: frontend`; main-branch frontend changes publish the live site. The existing Firebase-generated service-account secret is used without committing a key. Same-repository pull requests can create preview channels, but each preview origin must be explicitly added to backend CORS before authenticated API use. No wildcard origins are permitted.
+
+See [deployment and verification details](../docs/FIREBASE_DEPLOYMENT.md).
+
 ## Behavior
 
 Login uses backend credential verification. The session is saved in tab-scoped `sessionStorage`; refresh restores the current route only after `/auth/me` validates it. Corrupt, expired or revoked saved sessions are cleared. Reload retains the original expiry, while logout clears storage before server revocation completes. A temporary restore failure blocks protected content and offers retry or sign-out. If storage is unavailable, login still works in memory and a notice explains the reload limitation. Only allowlisted session fields are saved; passwords and directory records are never persisted.
